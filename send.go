@@ -13,18 +13,18 @@ type MessageBody struct {
 }
 
 type PlatformParam struct {
-	HWAppId                 string
-	HWClientSecret          string
-	IOSKeyId                string
-	IOSTeamId               string
-	IOSBundleId             string
-	IOSAuthTokenPath        string
-	MIAppSecret             string
-	MIRestrictedPackageName string
-	MZAppId                 string
-	MZAppSecret             string
-	OPPOAppKey              string
-	OPPOMasterSecret        string
+	HWAppId                 string `json:"hw_appId"`
+	HWClientSecret          string `json:"hw_clientSecret"`
+	IOSKeyId                string `json:"iOS_keyId"`
+	IOSTeamId               string `json:"iOS_teamId"`
+	IOSBundleId             string `json:"iOS_bundleId"`
+	IOSAuthTokenPath        string `json:"iOS_authTokenPath"`
+	MIAppSecret             string `json:"mi_appSecret"`
+	MIRestrictedPackageName string `json:"mi_restrictedPackageName"`
+	MZAppId                 string `json:"mz_appId"`
+	MZAppSecret             string `json:"mz_appSecret"`
+	OPPOAppKey              string `json:"oppo_appKey"`
+	OPPOMasterSecret        string `json:"oppo_masterSecret"`
 }
 
 func InitSend(message MessageBody, channel string, pushId []string, platformParam PlatformParam) *Send {
@@ -36,8 +36,8 @@ func InitSend(message MessageBody, channel string, pushId []string, platformPara
 	}
 }
 
-func (s *Send) SendMessage() (int,string) {
-	code,errReason := 0, ""
+func (s *Send) SendMessage() (int, string) {
+	code, errReason := 0, ""
 	switch s.Channel {
 	case "hw":
 		code, errReason = hwMessagesSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.HWAppId, s.PlatformParam.HWClientSecret)
@@ -52,8 +52,8 @@ func (s *Send) SendMessage() (int,string) {
 		code, errReason = mzMessageSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.MZAppId, s.PlatformParam.MZAppSecret)
 		break
 	case "oppo":
-		code,errReason = oppoMessageSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.OPPOAppKey, s.PlatformParam.OPPOMasterSecret)
+		code, errReason = oppoMessageSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.OPPOAppKey, s.PlatformParam.OPPOMasterSecret)
 		break
 	}
-	return code,errReason
+	return code, errReason
 }

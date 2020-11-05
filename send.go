@@ -19,6 +19,7 @@ type PlatformParam struct {
 	IOSTeamId               string `json:"iOS_teamId"`
 	IOSBundleId             string `json:"iOS_bundleId"`
 	IOSAuthTokenPath        string `json:"iOS_authTokenPath"`
+	IOSAuthToken            string `json:"iOS_authToken"`
 	MIAppSecret             string `json:"mi_appSecret"`
 	MIRestrictedPackageName string `json:"mi_restrictedPackageName"`
 	MZAppId                 string `json:"mz_appId"`
@@ -43,7 +44,7 @@ func (s *Send) SendMessage() (int, string) {
 		code, errReason = hwMessagesSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.HWAppId, s.PlatformParam.HWClientSecret)
 		break
 	case "ios":
-		code, errReason = iOSMessagesSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.IOSKeyId, s.PlatformParam.IOSTeamId, s.PlatformParam.IOSBundleId, s.PlatformParam.IOSAuthTokenPath)
+		code, errReason = iOSMessagesSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.IOSBundleId, s.PlatformParam.IOSAuthToken)
 		break
 	case "mi":
 		code, errReason = miMessageSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.MIAppSecret, s.PlatformParam.MIRestrictedPackageName)

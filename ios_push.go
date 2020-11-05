@@ -43,7 +43,7 @@ func initMessageIOS(title string, desc string) *Message {
 
 const (
 	IOSProductionHost = "https://api.development.push.apple.com"
-	IOSMessageURL = "/3/device/"
+	IOSMessageURL     = "/3/device/"
 )
 
 const (
@@ -68,24 +68,20 @@ type ErrResult struct {
 	Reason string `json:"reason"`
 }
 
-func iOSMessagesSend(title string, desc string, token []string, keyId, teamId, bundleId, authTokenPath string) (int, string) {
+func iOSMessagesSend(title string, desc string, token []string, bundleId, authToken string) (int, string) {
 	code, reason := 1, ""
 	message := initMessageIOS(title, desc)
 	fields := message.Fields.(string)
 	header := make(map[string]string)
 	header["apns-topic"] = bundleId
-	authToken,err := getAuthToken(authTokenPath, keyId, teamId)
-	if err != nil {
-
-	}
 	header["Authorization"] = fmt.Sprintf("bearer %s", authToken)
 
-	for _,v := range token {
+	for _, v := range token {
 		requestUrl := IOSProductionHost + IOSMessageURL + v
-		fmt.Println("111111111",requestUrl)
-		fmt.Println("222222222",fields)
-		fmt.Println("333333333",header)
-		body,err := postReqJson(requestUrl, fields, header)
+		fmt.Println("111111111", requestUrl)
+		fmt.Println("222222222", fields)
+		fmt.Println("333333333", header)
+		body, err := postReqJson(requestUrl, fields, header)
 		if err != nil {
 
 		}
@@ -97,11 +93,10 @@ func iOSMessagesSend(title string, desc string, token []string, keyId, teamId, b
 			break
 		}
 	}
-	return code,reason
+	return code, reason
 }
 
-
-func getAuthToken(authTokenPath string, keyID string, teamID string) (string, error) {
+func GetAuthTokenIOS(authTokenPath string, keyID string, teamID string) (string, error) {
 	tokenBytes, err := ioutil.ReadFile(authTokenPath)
 	if err != nil {
 		return "", err

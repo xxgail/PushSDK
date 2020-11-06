@@ -15,13 +15,19 @@ const (
 type MIFields struct {
 	Payload               string `json:"payload"`                 //消息内容
 	RestrictedPackageName string `json:"restricted_package_name"` //支持多包名
-	PassThrough           string `json:"pass_through"`            //是否透传给app(1 透传 0 通知栏信息)
 	Title                 string `json:"title"`                   //在通知栏的标题，长度小于16
 	Description           string `json:"description"`             //在通知栏的描述，长度小于128
 	NotifyType            string `json:"notify_type"`             //通知类型 可组合 (-1 Default_all,1 Default_sound,2 Default_vibrate(震动),4 Default_lights)
 	NotifyId              string `json:"notify_id"`               //同一个notifyId在通知栏只会保留一条
 	TimeToLive            string `json:"time_to_live"`            //可选项，当用户离线是，消息保留时间，默认两周，单位ms
 	TimeToSend            string `json:"time_to_send"`            //可选项，定时发送消息，用自1970年1月1日以来00:00:00.0 UTC时间表示（以毫秒为单位的时间）。
+	Extra                 Extra  `json:"extra"`
+}
+
+type Extra struct {
+	NotifyEffect int    `json:"notify_effect"` // “1″：通知栏点击后打开app的Launcher Activity。 “2″：通知栏点击后打开app的任一Activity（开发者还需要传入extra.intent_uri）。 “3″：通知栏点击后打开网页（开发者还需要传入extra.web_uri）。
+	IntentUri    string `json:"intent_uri"`
+	WebUri       string `json:"web_uri"`
 }
 
 func initMessageMi(title string, desc string) *Message {
@@ -31,10 +37,9 @@ func initMessageMi(title string, desc string) *Message {
 		IsShowNotify: "1",
 		Ext:          "",
 	}
-	payloadStr,_ := json.Marshal(payload)
+	payloadStr, _ := json.Marshal(payload)
 	fields := MIFields{
 		Payload:     string(payloadStr),
-		PassThrough: "0",
 		Title:       title,
 		Description: desc,
 		NotifyType:  "-1",
@@ -98,9 +103,9 @@ func miMessageSend(title string, desc string, regIds []string, appSecret, restri
 	if err != nil {
 
 	}
-	fmt.Println("rrrrrrrrrrrresult",result)
-	if result.Code != MiSuccess{
-		return 0,result.Reason
+	fmt.Println("rrrrrrrrrrrresult", result)
+	if result.Code != MiSuccess {
+		return 0, result.Reason
 	}
-	return 1,""
+	return 1, ""
 }

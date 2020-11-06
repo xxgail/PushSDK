@@ -8,17 +8,23 @@ import (
 )
 
 type MessageFields struct {
-	TargetType   int          `json:"target_type"`
-	TargetValue  string       `json:"target_value"`
+	TargetType   int              `json:"target_type"`
+	TargetValue  string           `json:"target_value"`
 	Notification OPPONotification `json:"notification"`
 }
 
 type OPPONotification struct {
-	AppMessageId string `json:"app_message_id"`
-	Style        int    `json:"style"` // 1-标准样式（默认1）
-	Title        string `json:"title"`
-	SubTitle     string `json:"sub_title"`
-	Content      string `json:"content"`
+	AppMessageId        string `json:"app_message_id"`   // 消息tag
+	Style               int    `json:"style"`            // 1-标准样式（默认1） 2-长文本 3-大图
+	BigPictureId        string `json:"big_picture_id"`   // 大图id
+	SmallPictureId      string `json:"small_picture_id"` // 图标
+	Title               string `json:"title"`
+	SubTitle            string `json:"sub_title"`
+	Content             string `json:"content"`
+	ClickActionType     int    `json:"click_action_type"`     //点击动作类型0，启动应用；1，打开应用内页（activity的intent action）；2，打开网页；4，打开应用内页（activity）；【非必填，默认值为0】;5,Intent scheme URL
+	ClickActionActivity string `json:"click_action_activity"` // 应用内页地址【click_action_type为1/4/ 时必填，长度500】
+	ClickActionUrl      string `json:"click_action_url"`      // 网页地址或【click_action_type为2与5时必填
+	ActionParameters    string `json:"action_parameters"`     // 传递给网页或应用的参数 json 格式
 }
 
 func initMessageOPPO(title string, desc string, registrationIds []string) *Message {
@@ -36,9 +42,9 @@ func initMessageOPPO(title string, desc string, registrationIds []string) *Messa
 		}
 		messages = append(messages, message)
 	}
-	messagesStr,_ := json.Marshal(messages)
+	messagesStr, _ := json.Marshal(messages)
 	fields := map[string]string{
-		"messages" : string(messagesStr),
+		"messages": string(messagesStr),
 	}
 	return &Message{
 		Fields: fields,
@@ -78,7 +84,7 @@ func oppoMessageSend(title string, desc string, pushIds []string, appKey, master
 	fields := message.Fields.(map[string]string)
 	requestUrl := OPPOProductionHost + OPPOMessageURL
 	header := make(map[string]string)
-	header["auth_token"],_ = getAuthTokenOPPO(appKey, masterSecret)
+	header["auth_token"], _ = getAuthTokenOPPO(appKey, masterSecret)
 	body, err := postReqUrlencoded(requestUrl, fields, header)
 	if err != nil {
 
@@ -89,16 +95,16 @@ func oppoMessageSend(title string, desc string, pushIds []string, appKey, master
 	if err != nil {
 
 	}
-	fmt.Println("rrrrrrrrrrrresult",result)
-	if result.Code != OPPOSuccess{
-		return 0,result.Message
+	fmt.Println("rrrrrrrrrrrresult", result)
+	if result.Code != OPPOSuccess {
+		return 0, result.Message
 	}
-	return 1,""
+	return 1, ""
 }
 
 type OPPOTokenResult struct {
-	Code    int       `json:"code"`
-	Message string    `json:"message"`
+	Code    int           `json:"code"`
+	Message string        `json:"message"`
 	Data    OPPOTokenData `json:"data"`
 }
 
@@ -114,7 +120,7 @@ func getAuthTokenOPPO(appKey string, masterSecret string) (string, error) {
 	requestUrl := OPPOProductionHost + OPPOTokenURL
 	forms := make(map[string]string)
 	forms["app_key"] = appKey
-	forms["sign"] = sha256Encode(appKey+currentTimeStr+masterSecret)
+	forms["sign"] = sha256Encode(appKey + currentTimeStr + masterSecret)
 	forms["timestamp"] = currentTimeStr
 	header := make(map[string]string)
 

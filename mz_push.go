@@ -17,28 +17,45 @@ type MessageJson struct {
 }
 
 type NoticeBarInfo struct {
-	NoticeBarType int    `json:"noticeBarType"`
-	Title         string `json:"title"`
-	Content       string `json:"content"`
+	NoticeBarType int    `json:"noticeBarType"` // 通知栏样式 0-标准 2-安卓原生 【int 非必填，值为0】
+	Title         string `json:"title"`         // 推送标题 【string 必填，字数限制1-32字符】
+	Content       string `json:"content"`       // 推送内容 【string 必填，字数限制1-100字符】
 }
 
 type NoticeExpandInfo struct {
-	NoticeExpandType    int    `json:"noticeExpandType"` // 0-标准、1-文本
-	NoticeExpandContent string `json:"noticeExpandContent"`
+	NoticeExpandType    int    `json:"noticeExpandType"`    // 0-标准、1-文本 int 非必填
+	NoticeExpandContent string `json:"noticeExpandContent"` // 展示内容、为文本时必填
 }
 
 type ClickTypeInfo struct {
-	ClickType       int               `json:"clickType"` // 点击动作 0-打开应用（默认）、1-打开应用页面、2-打开URI页面、3-应用客户端自定义
-	Url             string            `json:"url"`
-	Parameters      map[string]string `json:"parameters"`
-	Activity        string            `json:"activity"`
-	CustomAttribute string            `json:"customAttribute"`
+	ClickType       int               `json:"clickType"`       // 点击动作 0-打开应用（默认）、1-打开应用页面、2-打开URI页面、3-应用客户端自定义
+	Url             string            `json:"url"`             // clickType=2时必填
+	Parameters      map[string]string `json:"parameters"`      // json 格式 非必填
+	Activity        string            `json:"activity"`        // clickType=1时必填。格式：pkg.activity
+	CustomAttribute string            `json:"customAttribute"` // clickType=3时必填
 }
 
 type PushTimeInfo struct {
-	OffLine   int `json:"offLine"`
-	ValidTime int `json:"validTime"`
+	OffLine   int `json:"offLine"`   // 是否是离线消息 0-否、1-是（默认）
+	ValidTime int `json:"validTime"` // 有效时长（1-72小时内的正整数，默认24
 }
+
+//
+//type AdvanceInfo struct {
+//	Suspend             int              `json:"suspend"`
+//	ClearNoticeBar      int              `json:"clearNoticeBar"`
+//	FixDisplay          int              `json:"fixDisplay"`
+//	FixStartDisplayTime string           `json:"fixStartDisplayTime"`
+//	FixEndDisplayTime   string           `json:"fixEndDisplayTime"`
+//	NotificationType    NotificationType `json:"notificationType"`
+//	NotifyKey           string           `json:"notifyKey"`
+//}
+//
+//type NotificationType struct {
+//	Vibrate int `json:"vibrate"`
+//	Lights  int `json:"lights"`
+//	Sound   int `json:"sound"`
+//}
 
 func initMessageMZ(title string, desc string) *Message {
 	var messageJson MessageJson
@@ -58,8 +75,8 @@ func initMessageMZ(title string, desc string) *Message {
 			Activity:   "",
 		},
 		PushTimeInfo: PushTimeInfo{
-			OffLine:   0,
-			ValidTime: 0,
+			OffLine:   0, // 是否进离线消息 否 是 【 非必填，默认值为 】
+			ValidTime: 0, // 有效时长(1-72小时内的正整数)【 int offline 值为1时，必填，默认24
 		},
 	}
 	messageJsonStr, _ := json.Marshal(messageJson)
@@ -87,8 +104,7 @@ type MZResult struct {
 	MsgId    string `json:"msgId"`
 }
 
-
-func mzMessageSend(title string, desc string, pushIds []string,appId,appSecret string) (int, string) {
+func mzMessageSend(title string, desc string, pushIds []string, appId, appSecret string) (int, string) {
 	message := initMessageMZ(title, desc)
 	fields := message.Fields.(map[string]string)
 	fields["appId"] = appId
@@ -106,11 +122,11 @@ func mzMessageSend(title string, desc string, pushIds []string,appId,appSecret s
 	if err != nil {
 
 	}
-	fmt.Println("rrrrrrrrrrrresult",result)
-	if result.Code != MZSuccess{
-		return 0,result.Message
+	fmt.Println("rrrrrrrrrrrresult", result)
+	if result.Code != MZSuccess && result.Value != "" {
+		return 0, result.Message
 	}
-	return 1,""
+	return 1, ""
 }
 
 const (

@@ -6,8 +6,7 @@ import (
 )
 
 type HWFields struct {
-	ValidateOnly bool                `form:"validate_only" json:"validate_only"`
-	Message      MessageNotification `json:"message"`
+	Message MessageNotification `json:"message"`
 }
 
 type MessageNotification struct {
@@ -22,23 +21,34 @@ type Notification struct {
 }
 
 type Android struct {
+	CollapseKey  int                 `json:"collapse_key"` // 缓存。0-只缓存新的一条，-1对所有离线消息都缓存、1-100分组缓存
 	Notification AndroidNotification `json:"notification"`
 }
 
 type AndroidNotification struct {
-	Title       string      `form:"title" json:"title"`
-	Body        string      `form:"body" json:"body"`
-	ClickAction ClickAction `json:"click_action"`
+	Title       string            `form:"title" json:"title"`
+	Body        string            `form:"body" json:"body"`
+	Icon        string            `json:"icon"` // 小图标
+	Tag         string            `json:"tag"`  // 消息标签
+	ClickAction ClickAction       `json:"click_action"`
+	Badge       BadgeNotification `json:"badge"` // 角标
 }
 
 type ClickAction struct {
-	Type   int    `json:"type"`
-	Intent string `json:"intent"`
+	Type   int    `json:"type"`   // 1-打开应自定义页面、2-打开URL、3-打开应用APP
+	Intent string `json:"intent"` // 自定义页面中intent的实现
+	Url    string `json:"url"`
+	Action string `json:"action"` // 设置通过action打开应用自定义页面时，本字段填写要打开的页面activity对应的action。
+}
+
+type BadgeNotification struct {
+	AddNum int    `json:"add_num"`
+	Class  string `json:"class"`   // 应用入口Activity类全路径。 样例：com.example.hmstest.MainActivity
+	SetNum int    `json:"set_num"` // 角标设置数字，大于等于0小于100的整数。如果set_num与add_num同时存在时，以set_num为准
 }
 
 func initMessageHW(title string, desc string, token []string) *Message {
 	fields := HWFields{
-		ValidateOnly: false,
 		Message: MessageNotification{
 			Notification: Notification{
 				Title: title,
@@ -83,14 +93,14 @@ type HWResult struct {
 	RequestId string `json:"requestId,omitempty"` //请求标识。
 }
 
-func hwMessagesSend(title string, desc string,token []string, appId, clientSecret string) (int, string) {
+func hwMessagesSend(title string, desc string, token []string, appId, clientSecret string) (int, string) {
 	message := initMessageHW(title, desc, token)
 	fields := message.Fields.(string)
 	requestUrl := HWProductionHost + appId + HWMessageURL
 	header := make(map[string]string)
 	accessToken := getAccessToken(appId, clientSecret)
 	header["Authorization"] = fmt.Sprintf("Bearer %s", accessToken)
-	body,err := postReqJson(requestUrl, fields, header)
+	body, err := postReqJson(requestUrl, fields, header)
 	var result = &HWResult{}
 	err = json.Unmarshal(body, result)
 	if err != nil {
@@ -100,7 +110,7 @@ func hwMessagesSend(title string, desc string,token []string, appId, clientSecre
 	if result.Code != HWSuccess {
 		return 0, result.Msg
 	}
-	return 1,""
+	return 1, ""
 }
 
 type TokenResult struct {
@@ -108,7 +118,6 @@ type TokenResult struct {
 	ExpiresIn   int    `json:"expires_in"`
 	TokenType   string `json:"token_type"`
 }
-
 
 func getAccessToken(clientId, clientSecret string) string {
 	var accessToken string
@@ -120,7 +129,7 @@ func getAccessToken(clientId, clientSecret string) string {
 	header := make(map[string]string)
 	fmt.Println(requestPath)
 	fmt.Println(forms)
-	body,err := postReqUrlencoded(requestPath, forms, header)
+	body, err := postReqUrlencoded(requestPath, forms, header)
 	var result = &TokenResult{}
 	err = json.Unmarshal(body, result)
 	if err != nil {

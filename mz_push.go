@@ -1,8 +1,6 @@
 package PushSDK
 
 import (
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"sort"
@@ -153,8 +151,5 @@ func generateSign(params map[string]string, appSecret string) string {
 	for _, v := range keys {
 		str += fmt.Sprintf("%v=%v", v, params[v])
 	}
-	str += appSecret
-	u := md5.New()
-	u.Write([]byte(str))
-	return hex.EncodeToString(u.Sum(nil))
+	return md5Str(str, appSecret)
 }

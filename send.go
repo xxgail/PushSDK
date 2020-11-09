@@ -26,6 +26,10 @@ type PlatformParam struct {
 	MZAppSecret             string `json:"mz_appSecret"`
 	OPPOAppKey              string `json:"oppo_appKey"`
 	OPPOMasterSecret        string `json:"oppo_masterSecret"`
+	VIAppID                 string `json:"vi_appId"`
+	VIAppKey                string `json:"vi_appKey"`
+	VIAppSecret             string `json:"vi_appSecret"`
+	VIAuthToken             string `json:"vi_authToken"`
 }
 
 func InitSend(message MessageBody, channel string, pushId []string, platformParam PlatformParam) *Send {
@@ -54,6 +58,9 @@ func (s *Send) SendMessage() (int, string) {
 		break
 	case "oppo":
 		code, errReason = oppoMessageSend(s.MessageBody.Title, s.MessageBody.Desc, s.PushId, s.PlatformParam.OPPOAppKey, s.PlatformParam.OPPOMasterSecret)
+		break
+	case "vivo":
+		code, errReason = vSendMessage(s.MessageBody, s.PushId, s.PlatformParam.VIAuthToken)
 		break
 	}
 	return code, errReason

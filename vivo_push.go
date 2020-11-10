@@ -87,14 +87,23 @@ type VResult struct {
 	InvalidUser string `json:"invalidUser"` // 非法用户信息
 }
 
-func vSendMessage(m MessageBody, pushId []string, authToken string) (int, string) {
+func vSendMessage(m MessageBody, pushId []string, authToken string) (*Response, error) {
+	response := &Response{}
 	header := make(map[string]string)
 	header["authToken"] = authToken
 	var body []byte
 	if len(pushId) == 1 {
 		message := initMessageSingleV(m, pushId[0])
 		forms := message.Fields.(string)
-		body, _ = postReqJson(VIVOProductUrl+VIVOSingleSend, forms, header)
+		var err error
+		fmt.Println(VIVOProductUrl + VIVOSingleSend)
+		fmt.Println(forms)
+		fmt.Println(header)
+		body, err = postReqJson(VIVOProductUrl+VIVOSingleSend, forms, header)
+		if err != nil {
+			response.Code = HTTPERROR
+			return response, err
+		}
 	} else {
 		forms := initGroupMessage(m)
 		bodyTask, err := postReqJson(VIVOProductUrl+VIVOGroupTask, forms, header)
@@ -112,18 +121,23 @@ func vSendMessage(m MessageBody, pushId []string, authToken string) (int, string
 			RegIds: pushId,
 		}
 		vFieldGroupStr, _ := json.Marshal(vFieldGroup)
-		body, _ = postReqJson(VIVOProductUrl+VIVOGroupSend, string(vFieldGroupStr), header)
+		body, err = postReqJson(VIVOProductUrl+VIVOGroupSend, string(vFieldGroupStr), header)
+		if err != nil {
+
+		}
 	}
 	var result VResult
+	fmt.Println("vvvvvv", string(body))
 	err := json.Unmarshal(body, &result)
 	if err != nil {
 
 	}
 	if result.Result != VIVOSuccess {
 		fmt.Println("Send Message Request Error", result.Desc)
-		return 0, "V" + strconv.Itoa(result.Result)
+		response.Code = SendError
+		response.Reason = result.Desc
 	}
-	return 1, ""
+	return response, nil
 }
 
 type AuthTokenResult struct {

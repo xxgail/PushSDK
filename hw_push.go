@@ -93,7 +93,8 @@ type HWResult struct {
 	RequestId string `json:"requestId,omitempty"` //请求标识。
 }
 
-func hwMessagesSend(m MessageBody, token []string, appId, clientSecret string) (int, string) {
+func hwMessagesSend(m MessageBody, token []string, appId, clientSecret string) (*Response, error) {
+	response := &Response{}
 	message := initMessageHW(m, token)
 	fields := message.Fields.(string)
 	requestUrl := HWProductionHost + appId + HWMessageURL
@@ -101,6 +102,10 @@ func hwMessagesSend(m MessageBody, token []string, appId, clientSecret string) (
 	accessToken := getAccessToken(appId, clientSecret)
 	header["Authorization"] = fmt.Sprintf("Bearer %s", accessToken)
 	body, err := postReqJson(requestUrl, fields, header)
+	if err != nil {
+		response.Code = HTTPERROR
+		return response, err
+	}
 	var result = &HWResult{}
 	err = json.Unmarshal(body, result)
 	if err != nil {
@@ -108,9 +113,11 @@ func hwMessagesSend(m MessageBody, token []string, appId, clientSecret string) (
 	}
 	fmt.Println(result)
 	if result.Code != HWSuccess {
-		return 0, result.Msg
+		response.Code = SendError
+		response.Reason = result.Msg
+		response.ApnsId = result.RequestId
 	}
-	return 1, ""
+	return response, err
 }
 
 type TokenResult struct {

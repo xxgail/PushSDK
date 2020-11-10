@@ -68,13 +68,14 @@ type ErrResult struct {
 	Reason string `json:"reason"`
 }
 
-func iOSMessagesSend(m MessageBody, token []string, bundleId, authToken string) (int, string) {
-	code, reason := 1, ""
+func iOSMessagesSend(m MessageBody, token []string, bundleId, authToken string) (*Response, error) {
+	response := &Response{}
 	message := initMessageIOS(m)
 	fields := message.Fields.(string)
 	header := make(map[string]string)
 	header["apns-topic"] = bundleId
 	header["Authorization"] = fmt.Sprintf("bearer %s", authToken)
+	header["apns-id"] = m.ApnsId
 
 	for _, v := range token {
 		requestUrl := IOSProductionHost + IOSMessageURL + v
@@ -83,17 +84,18 @@ func iOSMessagesSend(m MessageBody, token []string, bundleId, authToken string) 
 		fmt.Println("333333333", header)
 		body, err := postReqJson(requestUrl, fields, header)
 		if err != nil {
-
+			response.Code = HTTPERROR
+			return response, err
 		}
 		if string(body) != "" {
-			code = 0
 			var errRes = &ErrResult{}
 			err = json.Unmarshal(body, errRes)
-			reason = errRes.Reason
+			response.Code = SendError
+			response.Reason = errRes.Reason
 			break
 		}
 	}
-	return code, reason
+	return response, nil
 }
 
 func GetAuthTokenIOS(authTokenPath string, keyID string, teamID string) (string, error) {

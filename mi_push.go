@@ -77,7 +77,8 @@ type Payload struct {
 	Ext          string `json:"ext"`
 }
 
-func miMessageSend(m MessageBody, regIds []string, appSecret, restrictedPackageName string) (int, string) {
+func miMessageSend(m MessageBody, regIds []string, appSecret, restrictedPackageName string) (*Response, error) {
+	response := &Response{}
 	message := initMessageMi(m)
 	fieldsStr := message.Fields.(string)
 	var fields map[string]string
@@ -95,7 +96,8 @@ func miMessageSend(m MessageBody, regIds []string, appSecret, restrictedPackageN
 
 	body, err := postReqUrlencoded(requestUrl, fields, header)
 	if err != nil {
-
+		response.Code = HTTPERROR
+		return response, err
 	}
 
 	var result = &MIResult{}
@@ -105,7 +107,8 @@ func miMessageSend(m MessageBody, regIds []string, appSecret, restrictedPackageN
 	}
 	fmt.Println("rrrrrrrrrrrresult", result)
 	if result.Code != MiSuccess {
-		return 0, result.Reason
+		response.Code = SendError
+		response.Reason = result.Reason
 	}
-	return 1, ""
+	return response, nil
 }

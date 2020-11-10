@@ -19,8 +19,9 @@ type Send struct {
 }
 
 type MessageBody struct {
-	Title string
-	Desc  string
+	Title  string
+	Desc   string
+	ApnsId string
 }
 
 type PlatformParam struct {
@@ -179,8 +180,7 @@ func (s *Send) SetVIAuthToken(str string) *Send {
 //	}
 //}
 
-func (s *Send) SendMessage() (int, string) {
-	code, errReason := 0, ""
+func (s *Send) SendMessage() (*Response, error) {
 	var messageBody MessageBody
 	mPoint := s.content["messageBody"].(*MessageBody)
 	mJson, _ := json.Marshal(mPoint)
@@ -196,23 +196,21 @@ func (s *Send) SendMessage() (int, string) {
 	fmt.Println("platform", platform)
 	switch s.content["channel"].(string) {
 	case "hw":
-		code, errReason = hwMessagesSend(messageBody, pushId, platform.HWAppId, platform.HWClientSecret)
-		break
+		return hwMessagesSend(messageBody, pushId, platform.HWAppId, platform.HWClientSecret)
 	case "ios":
-		code, errReason = iOSMessagesSend(messageBody, pushId, platform.IOSBundleId, platform.IOSAuthToken)
-		break
+		return iOSMessagesSend(messageBody, pushId, platform.IOSBundleId, platform.IOSAuthToken)
 	case "mi":
-		code, errReason = miMessageSend(messageBody, pushId, platform.MIAppSecret, platform.MIRestrictedPackageName)
-		break
+		return miMessageSend(messageBody, pushId, platform.MIAppSecret, platform.MIRestrictedPackageName)
 	case "mz":
-		code, errReason = mzMessageSend(messageBody, pushId, platform.MZAppId, platform.MZAppSecret)
-		break
+		return mzMessageSend(messageBody, pushId, platform.MZAppId, platform.MZAppSecret)
 	case "oppo":
-		code, errReason = oppoMessageSend(messageBody, pushId, platform.OPPOAppKey, platform.OPPOMasterSecret)
-		break
+		return oppoMessageSend(messageBody, pushId, platform.OPPOAppKey, platform.OPPOMasterSecret)
 	case "vivo":
-		code, errReason = vSendMessage(messageBody, pushId, platform.VIAuthToken)
-		break
+		return vSendMessage(messageBody, pushId, platform.VIAuthToken)
+	default:
+		return &Response{
+			Code:   SendError,
+			Reason: "No channel",
+		}, nil
 	}
-	return code, errReason
 }

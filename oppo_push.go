@@ -79,7 +79,8 @@ type Data struct {
 	ErrorMessage   string `json:"errorMessage"`
 }
 
-func oppoMessageSend(m MessageBody, pushIds []string, appKey, masterSecret string) (int, string) {
+func oppoMessageSend(m MessageBody, pushIds []string, appKey, masterSecret string) (*Response, error) {
+	response := &Response{}
 	message := initMessageOPPO(m, pushIds)
 	fields := message.Fields.(map[string]string)
 	requestUrl := OPPOProductionHost + OPPOMessageURL
@@ -87,7 +88,8 @@ func oppoMessageSend(m MessageBody, pushIds []string, appKey, masterSecret strin
 	header["auth_token"], _ = getAuthTokenOPPO(appKey, masterSecret)
 	body, err := postReqUrlencoded(requestUrl, fields, header)
 	if err != nil {
-
+		response.Code = HTTPERROR
+		return response, err
 	}
 
 	var result = &OPPOResult{}
@@ -97,9 +99,10 @@ func oppoMessageSend(m MessageBody, pushIds []string, appKey, masterSecret strin
 	}
 	fmt.Println("rrrrrrrrrrrresult", result)
 	if result.Code != OPPOSuccess {
-		return 0, result.Message
+		response.Code = SendError
+		response.Reason = result.Message
 	}
-	return 1, ""
+	return response, nil
 }
 
 type OPPOTokenResult struct {

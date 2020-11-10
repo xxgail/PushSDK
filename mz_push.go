@@ -102,7 +102,8 @@ type MZResult struct {
 	MsgId    string `json:"msgId"`
 }
 
-func mzMessageSend(m MessageBody, pushIds []string, appId, appSecret string) (int, string) {
+func mzMessageSend(m MessageBody, pushIds []string, appId, appSecret string) (*Response, error) {
+	response := &Response{}
 	message := initMessageMZ(m)
 	fields := message.Fields.(map[string]string)
 	fields["appId"] = appId
@@ -112,7 +113,8 @@ func mzMessageSend(m MessageBody, pushIds []string, appId, appSecret string) (in
 	header := make(map[string]string)
 	body, err := postReqUrlencoded(requestUrl, fields, header)
 	if err != nil {
-
+		response.Code = HTTPERROR
+		return response, err
 	}
 
 	var result = &MZResult{}
@@ -122,9 +124,11 @@ func mzMessageSend(m MessageBody, pushIds []string, appId, appSecret string) (in
 	}
 	fmt.Println("rrrrrrrrrrrresult", result)
 	if result.Code != MZSuccess && result.Value != "" {
-		return 0, result.Message
+		response.Code = SendError
+		response.Reason = result.Message
+		response.ApnsId = result.MsgId
 	}
-	return 1, ""
+	return response, nil
 }
 
 const (

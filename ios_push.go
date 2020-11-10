@@ -25,12 +25,12 @@ type Alert struct {
 	Body  string `json:"body"`
 }
 
-func initMessageIOS(title string, desc string) *Message {
+func initMessageIOS(m MessageBody) *Message {
 	fields := IOSFields{
 		Aps: Aps{
 			Alert: Alert{
-				Title: title,
-				Body:  desc,
+				Title: m.Title,
+				Body:  m.Desc,
 			},
 			Badge: 10,
 		},
@@ -68,9 +68,9 @@ type ErrResult struct {
 	Reason string `json:"reason"`
 }
 
-func iOSMessagesSend(title string, desc string, token []string, bundleId, authToken string) (int, string) {
+func iOSMessagesSend(m MessageBody, token []string, bundleId, authToken string) (int, string) {
 	code, reason := 1, ""
-	message := initMessageIOS(title, desc)
+	message := initMessageIOS(m)
 	fields := message.Fields.(string)
 	header := make(map[string]string)
 	header["apns-topic"] = bundleId

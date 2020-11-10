@@ -47,17 +47,17 @@ type BadgeNotification struct {
 	SetNum int    `json:"set_num"` // 角标设置数字，大于等于0小于100的整数。如果set_num与add_num同时存在时，以set_num为准
 }
 
-func initMessageHW(title string, desc string, token []string) *Message {
+func initMessageHW(m MessageBody, token []string) *Message {
 	fields := HWFields{
 		Message: MessageNotification{
 			Notification: Notification{
-				Title: title,
-				Body:  desc,
+				Title: m.Title,
+				Body:  m.Desc,
 			},
 			Android: Android{
 				Notification: AndroidNotification{
-					Title: title,
-					Body:  desc,
+					Title: m.Title,
+					Body:  m.Desc,
 					ClickAction: ClickAction{
 						Type:   1,
 						Intent: "#Intent;compo=com.rvr/.Activity;S.W=U;end",
@@ -93,8 +93,8 @@ type HWResult struct {
 	RequestId string `json:"requestId,omitempty"` //请求标识。
 }
 
-func hwMessagesSend(title string, desc string, token []string, appId, clientSecret string) (int, string) {
-	message := initMessageHW(title, desc, token)
+func hwMessagesSend(m MessageBody, token []string, appId, clientSecret string) (int, string) {
+	message := initMessageHW(m, token)
 	fields := message.Fields.(string)
 	requestUrl := HWProductionHost + appId + HWMessageURL
 	header := make(map[string]string)

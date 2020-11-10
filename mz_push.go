@@ -55,13 +55,13 @@ type PushTimeInfo struct {
 //	Sound   int `json:"sound"`
 //}
 
-func initMessageMZ(title string, desc string) *Message {
+func initMessageMZ(m MessageBody) *Message {
 	var messageJson MessageJson
 	messageJson = MessageJson{
 		NoticeBarInfo: NoticeBarInfo{
 			NoticeBarType: 0,
-			Title:         title,
-			Content:       desc,
+			Title:         m.Title,
+			Content:       m.Desc,
 		},
 		NoticeExpandInfo: NoticeExpandInfo{
 			NoticeExpandType:    0,
@@ -102,8 +102,8 @@ type MZResult struct {
 	MsgId    string `json:"msgId"`
 }
 
-func mzMessageSend(title string, desc string, pushIds []string, appId, appSecret string) (int, string) {
-	message := initMessageMZ(title, desc)
+func mzMessageSend(m MessageBody, pushIds []string, appId, appSecret string) (int, string) {
+	message := initMessageMZ(m)
 	fields := message.Fields.(map[string]string)
 	fields["appId"] = appId
 	fields["pushIds"] = strings.Join(pushIds, ",")

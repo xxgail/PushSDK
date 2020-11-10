@@ -27,7 +27,7 @@ type OPPONotification struct {
 	ActionParameters    string `json:"action_parameters"`     // 传递给网页或应用的参数 json 格式
 }
 
-func initMessageOPPO(title string, desc string, registrationIds []string) *Message {
+func initMessageOPPO(m MessageBody, registrationIds []string) *Message {
 	var messages []MessageFields
 	for _, v := range registrationIds {
 		message := MessageFields{
@@ -35,9 +35,9 @@ func initMessageOPPO(title string, desc string, registrationIds []string) *Messa
 			TargetValue: v,
 			Notification: OPPONotification{
 				Style:    1,
-				Title:    title,
-				SubTitle: title,
-				Content:  desc,
+				Title:    m.Title,
+				SubTitle: m.Title,
+				Content:  m.Desc,
 			},
 		}
 		messages = append(messages, message)
@@ -79,8 +79,8 @@ type Data struct {
 	ErrorMessage   string `json:"errorMessage"`
 }
 
-func oppoMessageSend(title string, desc string, pushIds []string, appKey, masterSecret string) (int, string) {
-	message := initMessageOPPO(title, desc, pushIds)
+func oppoMessageSend(m MessageBody, pushIds []string, appKey, masterSecret string) (int, string) {
+	message := initMessageOPPO(m, pushIds)
 	fields := message.Fields.(map[string]string)
 	requestUrl := OPPOProductionHost + OPPOMessageURL
 	header := make(map[string]string)

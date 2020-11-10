@@ -84,7 +84,7 @@ type Alert struct {
 	Body  string `json:"body"`
 }
 
-func InitMessage(title string, desc string, passThrough string) *Message {
+func InitMessage(m MessageBody, passThrough string) *Message {
 	var fields Fields
 	fields = Fields{
 		Aps: Aps{

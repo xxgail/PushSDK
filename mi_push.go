@@ -30,18 +30,18 @@ type Extra struct {
 	WebUri       string `json:"web_uri"`
 }
 
-func initMessageMi(title string, desc string) *Message {
+func initMessageMi(m MessageBody) *Message {
 	var payload = &Payload{
-		PushTitle:    title,
-		PushBody:     desc,
+		PushTitle:    m.Title,
+		PushBody:     m.Desc,
 		IsShowNotify: "1",
 		Ext:          "",
 	}
 	payloadStr, _ := json.Marshal(payload)
 	fields := MIFields{
 		Payload:     string(payloadStr),
-		Title:       title,
-		Description: desc,
+		Title:       m.Title,
+		Description: m.Desc,
 		NotifyType:  "-1",
 	}
 	fieldsStr, _ := json.Marshal(fields)
@@ -77,8 +77,8 @@ type Payload struct {
 	Ext          string `json:"ext"`
 }
 
-func miMessageSend(title string, desc string, regIds []string, appSecret, restrictedPackageName string) (int, string) {
-	message := initMessageMi(title, desc)
+func miMessageSend(m MessageBody, regIds []string, appSecret, restrictedPackageName string) (int, string) {
+	message := initMessageMi(m)
 	fieldsStr := message.Fields.(string)
 	var fields map[string]string
 	err := json.Unmarshal([]byte(fieldsStr), &fields)

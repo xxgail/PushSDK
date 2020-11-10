@@ -3,6 +3,40 @@ Go-PushSDK
 给APNS发推送消息。包括iOS、华为、小米、魅族、OPPO
 
 ▶ 待完善
+# 使用步骤
+1. 新建send
+`send := PushSDK.NewSend()` 
+2. 设置发送渠道(注：小写，渠道可选[ios-iOS、mi-小米、hw-华为、mz-魅族、oppo-OPPO、vivo-VIVO])
+`send.SetChannel("ios")`
+3. 设置发送用户(格式：数组 []string{})
+`send.SetPushId([]string{"123"})`
+4. 设置消息结构
+`send.SetTitle("title").SetContent("content")`
+5. 设置平台参数
+`send.SetHWAppId("1234")`
+6. 发送消息
+`send.SendMessage()`
+
+例子：
+```go
+package main
+
+import (
+    "github.com/xxgail/PushSDK"
+    "fmt"
+)
+
+func main() {
+    // 消息体
+	send := PushSDK.NewSend()
+	send.SetChannel("mi")
+    send.SetPushId([]string{"abcdefghi"})
+	send.SetTitle("标题").SetContent("详情")
+    send.SetMIAppSecret("test").SetMIRestrictedPackageName("test")
+    response,_ := send.SendMessage()
+    fmt.Println(response)
+}
+```
 
 # 具体传输方式
 | **channel** | **device_token来源** | **请求方式** | **URL** | **Content-Type** | **request-header** | **消息体结构** | **device_token** |

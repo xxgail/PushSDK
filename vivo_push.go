@@ -37,6 +37,9 @@ const (
 )
 
 func initMessageSingleV(m MessageBody, pushId string) *Message {
+	if m.ApnsId == "" {
+		m.ApnsId = getApnsId()
+	}
 	vFiled := VFieldSingle{
 		RegId:       pushId,
 		NotifyType:  1,
@@ -65,6 +68,9 @@ type GroupMessage struct {
 }
 
 func initGroupMessage(m MessageBody) string {
+	if m.ApnsId == "" {
+		m.ApnsId = getApnsId()
+	}
 	groupMessage := GroupMessage{
 		NotifyType:  1,
 		Title:       m.Title,

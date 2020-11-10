@@ -44,6 +44,7 @@ func initMessageSingleV(m MessageBody, pushId string) *Message {
 		Content:     m.Desc,
 		SkipType:    2,
 		SkipContent: "http://baidu.com",
+		RequestId:   m.ApnsId,
 	}
 	vFiledStr, _ := json.Marshal(vFiled)
 	return &Message{

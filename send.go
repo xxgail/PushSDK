@@ -72,6 +72,11 @@ func (s *Send) SetContent(str string) *Send {
 	return s
 }
 
+func (s *Send) SetApnsId(str string) *Send {
+	s.message().ApnsId = str
+	return s
+}
+
 func (s *Send) SetChannel(channel string) *Send {
 	s.content["channel"] = channel
 	return s
@@ -192,7 +197,7 @@ func (s *Send) SendMessage() (*Response, error) {
 	var platform PlatformParam
 	pPoint := s.content["platform"].(*PlatformParam)
 	pJson, _ := json.Marshal(pPoint)
-	json.Unmarshal(pJson, &platform)
+	_ = json.Unmarshal(pJson, &platform)
 	fmt.Println("platform", platform)
 	switch s.content["channel"].(string) {
 	case "hw":

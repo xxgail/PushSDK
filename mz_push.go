@@ -151,5 +151,5 @@ func generateSign(params map[string]string, appSecret string) string {
 	for _, v := range keys {
 		str += fmt.Sprintf("%v=%v", v, params[v])
 	}
-	return md5Str(str, appSecret)
+	return md5Str(str + appSecret)
 }

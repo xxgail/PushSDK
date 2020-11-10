@@ -147,7 +147,7 @@ const (
 
 func GetAuthTokenV(appId, appKey, appSecret string) string {
 	currentTimeStr := strconv.FormatInt(time.Now().UnixNano()/(1e6), 10)
-	sign := md5Str("trim", appId+appKey+currentTimeStr+appSecret)
+	sign := md5Str(appId + appKey + currentTimeStr + appSecret)
 	header := make(map[string]string)
 	param := make(map[string]string)
 	param["appId"] = appId
@@ -161,6 +161,7 @@ func GetAuthTokenV(appId, appKey, appSecret string) string {
 	}
 
 	var result = &AuthTokenResult{}
+	fmt.Println("vivo-token-body", string(body))
 	err = json.Unmarshal(body, result)
 	if err != nil {
 

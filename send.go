@@ -1,7 +1,9 @@
 package PushSDK
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 )
 
@@ -179,9 +181,19 @@ func (s *Send) SetVIAuthToken(str string) *Send {
 
 func (s *Send) SendMessage() (int, string) {
 	code, errReason := 0, ""
-	messageBody := s.content["messageBody"].(MessageBody)
+	var messageBody MessageBody
+	mPoint := s.content["messageBody"].(*MessageBody)
+	mJson, _ := json.Marshal(mPoint)
+	json.Unmarshal(mJson, &messageBody)
+	fmt.Println("messageBody", messageBody)
+
 	pushId := s.content["pushId"].([]string)
-	platform := s.content["platform"].(PlatformParam)
+
+	var platform PlatformParam
+	pPoint := s.content["platform"].(*PlatformParam)
+	pJson, _ := json.Marshal(pPoint)
+	json.Unmarshal(pJson, &platform)
+	fmt.Println("platform", platform)
 	switch s.content["channel"].(string) {
 	case "hw":
 		code, errReason = hwMessagesSend(messageBody, pushId, platform.HWAppId, platform.HWClientSecret)

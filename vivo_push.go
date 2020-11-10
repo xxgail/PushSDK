@@ -16,15 +16,15 @@ const (
 )
 
 type VFieldSingle struct {
-	RegId           string `json:"regId"`
-	NotifyType      int    `json:"notifyType"` // 通知类型 1.无、2-响铃、3-振动、4-响铃和振动
-	Title           string `json:"title"`
-	Content         string `json:"content"`
-	TimeToLive      int    `json:"timeToLive"`      // 消息保留时长 单位：秒，取值至少60秒，最长7天。当值为空时，默认一天
-	SkipType        int    `json:"skipType"`        // 跳转类型。1-打开APP首页、2-打开链接、3-自定义、4-打开APP内指定页面
-	SkipContent     string `json:"skipContent"`     // 跳转类型为2时，跳转内容最大1000个字符，跳转类型为3或4时，跳转内容最大1024个字符，skipType传3需要在onNotificationMessageClicked回调函数中自己写处理逻辑
-	ClientCustomMap string `json:"clientCustomMap"` // 客户端自定义键值对
-	RequestId       string `json:"requestId"`       // 消息唯一标识
+	RegId       string `json:"regId"`
+	NotifyType  int    `json:"notifyType"` // 通知类型 1.无、2-响铃、3-振动、4-响铃和振动
+	Title       string `json:"title"`
+	Content     string `json:"content"`
+	TimeToLive  int    `json:"timeToLive"`  // 消息保留时长 单位：秒，取值至少60秒，最长7天。当值为空时，默认一天
+	SkipType    int    `json:"skipType"`    // 跳转类型。1-打开APP首页、2-打开链接、3-自定义、4-打开APP内指定页面
+	SkipContent string `json:"skipContent"` // 跳转类型为2时，跳转内容最大1000个字符，跳转类型为3或4时，跳转内容最大1024个字符，skipType传3需要在onNotificationMessageClicked回调函数中自己写处理逻辑
+	//ClientCustomMap string `json:"clientCustomMap"` // 客户端自定义键值对
+	RequestId string `json:"requestId"` // 消息唯一标识
 }
 
 const (
@@ -42,6 +42,7 @@ func initMessageSingleV(m MessageBody, pushId string) *Message {
 		NotifyType:  1,
 		Title:       m.Title,
 		Content:     m.Desc,
+		TimeToLive:  86400,
 		SkipType:    2,
 		SkipContent: "http://baidu.com",
 		RequestId:   m.ApnsId,

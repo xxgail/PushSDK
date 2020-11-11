@@ -44,7 +44,7 @@ func initMessageIOS(m MessageBody) *Message {
 const (
 	IOSProductionHost = "https://api.development.push.apple.com"
 	IOSMessageURL     = "/3/device/"
-	TokenTimeout      = 3000
+	IOSTokenTimeout   = 3000
 )
 
 const (
@@ -69,13 +69,13 @@ type ErrResult struct {
 	Reason string `json:"reason"`
 }
 
-func iOSMessagesSend(m MessageBody, token []string, bundleId, authToken string) (*Response, error) {
+func iOSMessagesSend(m MessageBody, token []string, i *IOSParam) (*Response, error) {
 	response := &Response{}
 	message := initMessageIOS(m)
 	fields := message.Fields.(string)
 	header := make(map[string]string)
-	header["apns-topic"] = bundleId
-	header["Authorization"] = fmt.Sprintf("bearer %s", authToken)
+	header["apns-topic"] = i.BundleId
+	header["Authorization"] = fmt.Sprintf("bearer %s", i.Bearer)
 	header["apns-id"] = m.ApnsId
 
 	for _, v := range token {
@@ -144,7 +144,7 @@ func (i *IOSParam) generateIfExpired() string {
 }
 
 func (i *IOSParam) Expired() bool {
-	return time.Now().Unix() >= (i.IssuedAt + TokenTimeout)
+	return time.Now().Unix() >= (i.IssuedAt + IOSTokenTimeout)
 }
 
 func (i *IOSParam) Generate() (bool, error) {

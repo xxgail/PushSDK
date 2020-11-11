@@ -4,6 +4,8 @@ import (
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"strconv"
 	"time"
 )
@@ -29,4 +31,15 @@ func md5Str(str string) string {
 func getApnsId() string {
 	apns := md5Str(strconv.FormatInt(time.Now().Unix(), 10))
 	return apns[:8] + "-" + apns[8:12] + "-" + apns[12:16] + "-" + apns[16:20] + "-" + apns[20:]
+}
+
+func isEmpty(s string) error {
+	var m map[string]string
+	_ = json.Unmarshal([]byte(s), &m)
+	for k, v := range m {
+		if v == "" {
+			return errors.New(k + "不能为空")
+		}
+	}
+	return nil
 }

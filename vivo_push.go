@@ -8,11 +8,12 @@ import (
 )
 
 const (
-	VIVOProductUrl = "https://api-push.vivo.com.cn"
-	VIVOAuthUrl    = "/message/auth"
-	VIVOSingleSend = "/message/send"
-	VIVOGroupTask  = "/message/saveListPayload"
-	VIVOGroupSend  = "/message/pushToList"
+	VIVOProductUrl   = "https://api-push.vivo.com.cn"
+	VIVOAuthUrl      = "/message/auth"
+	VIVOSingleSend   = "/message/send"
+	VIVOGroupTask    = "/message/saveListPayload"
+	VIVOGroupSend    = "/message/pushToList"
+	VIVOTokenTimeout = 3600
 )
 
 var clickTypeV = map[string]int{
@@ -103,10 +104,10 @@ type VResult struct {
 	InvalidUser string `json:"invalidUser"` // 非法用户信息
 }
 
-func vSendMessage(m MessageBody, pushId []string, authToken string) (*Response, error) {
+func vSendMessage(m MessageBody, pushId []string, v *VParam) (*Response, error) {
 	response := &Response{}
 	header := make(map[string]string)
-	header["authToken"] = authToken
+	header["authToken"] = v.AuthToken
 	var body []byte
 	if len(pushId) == 1 {
 		message := initMessageSingleV(m, pushId[0])
@@ -200,4 +201,26 @@ func GetAuthTokenV(appId, appKey, appSecret string) string {
 		fmt.Println("AuthToken Request Error")
 	}
 	return result.AuthToken
+}
+
+func (v *VParam) generateIfExpired() string {
+	v.Lock()
+	defer v.Unlock()
+	if v.Expired() {
+		v.Generate()
+	}
+	return v.AuthToken
+}
+
+func (v *VParam) Expired() bool {
+	return time.Now().Unix() >= (v.IssuedAt + VIVOTokenTimeout)
+}
+
+func (v *VParam) Generate() (bool, error) {
+	bearer := GetAuthTokenV(v.AppID, v.AppKey, v.AppSecret)
+	if bearer != "" {
+		v.AuthToken = bearer
+		v.IssuedAt = time.Now().Unix()
+	}
+	return true, nil
 }

@@ -89,7 +89,7 @@ type Payload struct {
 	Ext          string `json:"ext"`
 }
 
-func miMessageSend(m MessageBody, regIds []string, appSecret, restrictedPackageName string) (*Response, error) {
+func miMessageSend(m MessageBody, regIds []string, mi *MIParam) (*Response, error) {
 	response := &Response{}
 	message := initMessageMi(m)
 	fieldsStr := message.Fields.(string)
@@ -99,12 +99,12 @@ func miMessageSend(m MessageBody, regIds []string, appSecret, restrictedPackageN
 		fmt.Println("field json.Unmarshal error", err)
 	}
 	fields["registration_id"] = strings.Join(regIds, ",")
-	fields["restricted_package_name"] = restrictedPackageName
+	fields["restricted_package_name"] = mi.RestrictedPackageName
 
 	requestUrl := MiProductionHost + MiMessageRegIdURL
 
 	header := make(map[string]string)
-	header["Authorization"] = fmt.Sprintf("key=%s", appSecret)
+	header["Authorization"] = fmt.Sprintf("key=%s", mi.AppSecret)
 
 	body, err := postReqUrlencoded(requestUrl, fields, header)
 	if err != nil {

@@ -2,6 +2,7 @@ package PushSDK
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
@@ -101,13 +102,16 @@ type HWResult struct {
 	RequestId string `json:"requestId,omitempty"` //请求标识。
 }
 
-func hwMessagesSend(m MessageBody, token []string, appId, clientSecret string) (*Response, error) {
+func hwMessagesSend(m MessageBody, token []string, h *HWParam) (*Response, error) {
 	response := &Response{}
 	message := initMessageHW(m, token)
 	fields := message.Fields.(string)
-	requestUrl := HWProductionHost + appId + HWMessageURL
+	if h.AppId == "" {
+		return response, errors.New("AppId 不能为空")
+	}
+	requestUrl := HWProductionHost + h.AppId + HWMessageURL
 	header := make(map[string]string)
-	accessToken := getAccessToken(appId, clientSecret)
+	accessToken := getAccessToken(h.AppId, h.ClientSecret)
 	header["Authorization"] = fmt.Sprintf("Bearer %s", accessToken)
 	body, err := postReqJson(requestUrl, fields, header)
 	if err != nil {

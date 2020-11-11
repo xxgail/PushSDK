@@ -89,13 +89,13 @@ type Data struct {
 	ErrorMessage   string `json:"errorMessage"`
 }
 
-func oppoMessageSend(m MessageBody, pushIds []string, appKey, masterSecret string) (*Response, error) {
+func oppoMessageSend(m MessageBody, pushIds []string, o *OPPOParam) (*Response, error) {
 	response := &Response{}
 	message := initMessageOPPO(m, pushIds)
 	fields := message.Fields.(map[string]string)
 	requestUrl := OPPOProductionHost + OPPOMessageURL
 	header := make(map[string]string)
-	header["auth_token"], _ = getAuthTokenOPPO(appKey, masterSecret)
+	header["auth_token"], _ = getAuthTokenOPPO(o.AppKey, o.MasterSecret)
 	body, err := postReqUrlencoded(requestUrl, fields, header)
 	if err != nil {
 		response.Code = HTTPERROR

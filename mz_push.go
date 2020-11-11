@@ -109,13 +109,13 @@ type MZResult struct {
 	MsgId    string `json:"msgId"`
 }
 
-func mzMessageSend(m MessageBody, pushIds []string, appId, appSecret string) (*Response, error) {
+func mzMessageSend(m MessageBody, pushIds []string, mz *MZParam) (*Response, error) {
 	response := &Response{}
 	message := initMessageMZ(m)
 	fields := message.Fields.(map[string]string)
-	fields["appId"] = appId
+	fields["appId"] = mz.AppId
 	fields["pushIds"] = strings.Join(pushIds, ",")
-	fields["sign"] = generateSign(fields, appSecret)
+	fields["sign"] = generateSign(fields, mz.AppSecret)
 	requestUrl := MZProductionHost + MZMessageURL
 	header := make(map[string]string)
 	body, err := postReqUrlencoded(requestUrl, fields, header)

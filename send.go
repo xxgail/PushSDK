@@ -17,6 +17,7 @@ import (
 
 type Send struct {
 	Content map[string]interface{}
+	Err     error
 }
 
 type MessageBody struct {
@@ -49,13 +50,19 @@ type PlatformParam struct {
 
 func NewSend() *Send {
 	return &Send{
-		map[string]interface{}{
+		Content: map[string]interface{}{
 			"messageBody": &MessageBody{},
 			"channel":     "",
 			"pushId":      []string{},
-			"platform":    &PlatformParam{},
-			"iosParam":    &IOSParam{},
+			//"platform":    &PlatformParam{},
+			"iosParam":  &IOSParam{},
+			"hwParam":   &HWParam{},
+			"miParam":   &MIParam{},
+			"mzParam":   &MZParam{},
+			"oppoParam": &OPPOParam{},
+			"vParam":    &VParam{},
 		},
+		Err: nil,
 	}
 }
 
@@ -76,14 +83,20 @@ func (s *Send) message() *MessageBody {
 }
 
 func (s *Send) SetTitle(str string) *Send {
+	if str == "" {
+		s.Err = errors.New("推送标题不能为空")
+	}
 	if len(str) > 40 {
-		log.Println(errors.New("标题过长"))
+		s.Err = errors.New("标题字符串长度不能大于40")
 	}
 	s.message().Title = str
 	return s
 }
 
 func (s *Send) SetContent(str string) *Send {
+	if str == "" {
+		s.Err = errors.New("推送内容不能为空")
+	}
 	s.message().Desc = str
 	return s
 }
@@ -103,17 +116,36 @@ func (s *Send) SetClickContent(str string) *Send {
 	return s
 }
 
-func (s *Send) platform() *PlatformParam {
-	return s.Content["platform"].(*PlatformParam)
+//func (s *Send) platform() *PlatformParam {
+//	return s.Content["platform"].(*PlatformParam)
+//}
+
+type HWParam struct {
+	sync.Mutex
+	AppId        string `json:"app_id"`
+	ClientSecret string `json:"client_secret"`
+}
+
+func (s *Send) hwParam() *HWParam {
+	return s.Content["hwParam"].(*HWParam)
+}
+
+func (s *Send) SetHWParam(str string) *Send {
+	s.Err = isEmpty(str)
+	var hwParam HWParam
+	_ = json.Unmarshal([]byte(str), &hwParam)
+	s.hwParam().AppId = hwParam.AppId
+	s.hwParam().ClientSecret = hwParam.ClientSecret
+	return s
 }
 
 func (s *Send) SetHWAppId(str string) *Send {
-	s.platform().HWAppId = str
+	s.hwParam().AppId = str
 	return s
 }
 
 func (s *Send) SetHWClientSecret(str string) *Send {
-	s.platform().HWClientSecret = str
+	s.hwParam().ClientSecret = str
 	return s
 }
 
@@ -131,7 +163,8 @@ func (s *Send) iosParam() *IOSParam {
 	return s.Content["iosParam"].(*IOSParam)
 }
 
-func (s *Send) SetIOSParam(str string) (*Send, error) {
+func (s *Send) SetIOSParam(str string) *Send {
+	s.Err = isEmpty(str)
 	var iosParam IOSParam
 	_ = json.Unmarshal([]byte(str), &iosParam)
 	s.iosParam().KeyId = iosParam.KeyId
@@ -143,81 +176,163 @@ func (s *Send) SetIOSParam(str string) (*Send, error) {
 	} else {
 		s.iosParam().Bearer = iosParam.Bearer
 	}
-	return s, nil
+	return s
 }
 
 func (s *Send) SetIOSKeyId(str string) *Send {
-	s.platform().IOSKeyId = str
+	s.iosParam().KeyId = str
 	return s
 }
 
 func (s *Send) SetIOSTeamId(str string) *Send {
-	s.platform().IOSTeamId = str
+	s.iosParam().TeamId = str
 	return s
 }
 
 func (s *Send) SetIOSBundleId(str string) *Send {
-	s.platform().IOSBundleId = str
+	s.iosParam().BundleId = str
 	return s
 }
 
 func (s *Send) SetIOSAuthTokenPath(str string) *Send {
-	s.platform().IOSAuthTokenPath = str
+	s.iosParam().AuthTokenPath = str
 	return s
 }
 
 func (s *Send) SetIOSAuthToken(str string) *Send {
-	s.platform().IOSAuthToken = str
+	s.iosParam().Bearer = str
+	return s
+}
+
+type MIParam struct {
+	AppSecret             string `json:"app_secret"`
+	RestrictedPackageName string `json:"restricted_package_name"`
+}
+
+func (s *Send) miParam() *MIParam {
+	return s.Content["miParam"].(*MIParam)
+}
+
+func (s *Send) SetMIParam(str string) *Send {
+	s.Err = isEmpty(str)
+	var param MIParam
+	_ = json.Unmarshal([]byte(str), &param)
+	s.miParam().AppSecret = param.AppSecret
+	s.miParam().RestrictedPackageName = param.RestrictedPackageName
 	return s
 }
 
 func (s *Send) SetMIAppSecret(str string) *Send {
-	s.platform().MIAppSecret = str
+	s.miParam().AppSecret = str
 	return s
 }
 
 func (s *Send) SetMIRestrictedPackageName(str string) *Send {
-	s.platform().MIRestrictedPackageName = str
+	s.miParam().RestrictedPackageName = str
+	return s
+}
+
+type MZParam struct {
+	AppSecret string `json:"app_secret"`
+	AppId     string `json:"app_id"`
+}
+
+func (s *Send) mzParam() *MZParam {
+	return s.Content["mzParam"].(*MZParam)
+}
+
+func (s *Send) SetMZParam(str string) *Send {
+	s.Err = isEmpty(str)
+	var param MZParam
+	_ = json.Unmarshal([]byte(str), &param)
+	s.mzParam().AppSecret = param.AppSecret
+	s.mzParam().AppId = param.AppId
 	return s
 }
 
 func (s *Send) SetMZAppId(str string) *Send {
-	s.platform().MZAppId = str
+	s.mzParam().AppId = str
 	return s
 }
 
 func (s *Send) SetMZAppSecret(str string) *Send {
-	s.platform().MZAppSecret = str
+	s.mzParam().AppSecret = str
+	return s
+}
+
+type OPPOParam struct {
+	AppKey       string `json:"app_key"`
+	MasterSecret string `json:"master_secret"`
+}
+
+func (s *Send) oppoParam() *OPPOParam {
+	return s.Content["oppoParam"].(*OPPOParam)
+}
+
+func (s *Send) SetOPPOParam(str string) *Send {
+	s.Err = isEmpty(str)
+	var param OPPOParam
+	_ = json.Unmarshal([]byte(str), &param)
+	s.oppoParam().AppKey = param.AppKey
+	s.oppoParam().MasterSecret = param.MasterSecret
 	return s
 }
 
 func (s *Send) SetOPPOAppKey(str string) *Send {
-	s.platform().OPPOAppKey = str
+	s.oppoParam().AppKey = str
 	return s
 }
 
 func (s *Send) SetOPPOMasterSecret(str string) *Send {
-	s.platform().OPPOMasterSecret = str
+	s.oppoParam().MasterSecret = str
+	return s
+}
+
+type VParam struct {
+	sync.Mutex
+	AppID     string `json:"app_id"`
+	AppKey    string `json:"app_key"`
+	AppSecret string `json:"app_secret"`
+	AuthToken string `json:"auth_token"`
+	IssuedAt  int64  `json:"issued_at"`
+}
+
+func (s *Send) vParam() *VParam {
+	return s.Content["vParam"].(*VParam)
+}
+
+func (s *Send) SetVIVOParam(str string) *Send {
+	s.Err = isEmpty(str)
+	var vParam VParam
+	_ = json.Unmarshal([]byte(str), &vParam)
+	s.vParam().AppID = vParam.AppID
+	s.vParam().AppKey = vParam.AppKey
+	s.vParam().AppSecret = vParam.AppSecret
+	if vParam.AuthToken == "" {
+		s.vParam().AuthToken = vParam.generateIfExpired()
+	} else {
+		s.vParam().AuthToken = vParam.AuthToken
+	}
 	return s
 }
 
 func (s *Send) SetVIAppID(str string) *Send {
-	s.platform().VIAppID = str
+	s.vParam().AppID = str
 	return s
 }
 
 func (s *Send) SetVIAppKey(str string) *Send {
-	s.platform().VIAppKey = str
+	s.vParam().AppKey = str
 	return s
 }
 
 func (s *Send) SetVIAppSecret(str string) *Send {
-	s.platform().VIAppSecret = str
+	s.vParam().AppSecret = str
 	return s
 }
 
 func (s *Send) SetVIAuthToken(str string) *Send {
-	s.platform().VIAuthToken = str
+	s.vParam().AuthToken = str
 	return s
 }
 
@@ -234,27 +349,19 @@ func (s *Send) SendMessage() (*Response, error) {
 	}
 
 	pushId := s.Content["pushId"].([]string)
-
-	var platform PlatformParam
-	pPoint := s.Content["platform"].(*PlatformParam)
-	pJson, _ := json.Marshal(pPoint)
-	_ = json.Unmarshal(pJson, &platform)
-	fmt.Println("platform", platform)
 	switch s.Content["channel"].(string) {
 	case "hw":
-		return hwMessagesSend(messageBody, pushId, platform.HWAppId, platform.HWClientSecret)
+		return hwMessagesSend(messageBody, pushId, s.Content["hwParam"].(*HWParam))
 	case "ios":
-		iosBundleId := s.Content["iosParam"].(*IOSParam).BundleId
-		iosToken := s.Content["iosParam"].(*IOSParam).Bearer
-		return iOSMessagesSend(messageBody, pushId, iosBundleId, iosToken)
+		return iOSMessagesSend(messageBody, pushId, s.Content["iosParam"].(*IOSParam))
 	case "mi":
-		return miMessageSend(messageBody, pushId, platform.MIAppSecret, platform.MIRestrictedPackageName)
+		return miMessageSend(messageBody, pushId, s.Content["miParam"].(*MIParam))
 	case "mz":
-		return mzMessageSend(messageBody, pushId, platform.MZAppId, platform.MZAppSecret)
+		return mzMessageSend(messageBody, pushId, s.Content["mzParam"].(*MZParam))
 	case "oppo":
-		return oppoMessageSend(messageBody, pushId, platform.OPPOAppKey, platform.OPPOMasterSecret)
+		return oppoMessageSend(messageBody, pushId, s.Content["oppoParam"].(*OPPOParam))
 	case "vivo":
-		return vSendMessage(messageBody, pushId, platform.VIAuthToken)
+		return vSendMessage(messageBody, pushId, s.Content["vParam"].(*VParam))
 	default:
 		return &Response{
 			Code:   SendError,

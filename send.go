@@ -16,7 +16,7 @@ import (
 //}
 
 type Send struct {
-	content map[string]interface{}
+	Content map[string]interface{}
 }
 
 type MessageBody struct {
@@ -61,18 +61,18 @@ func NewSend() *Send {
 
 // 设置渠道
 func (s *Send) SetChannel(channel string) *Send {
-	s.content["channel"] = channel
+	s.Content["channel"] = channel
 	return s
 }
 
 // 设置推送用户
 func (s *Send) SetPushId(pushId []string) *Send {
-	s.content["pushId"] = pushId
+	s.Content["pushId"] = pushId
 	return s
 }
 
 func (s *Send) message() *MessageBody {
-	return s.content["messageBody"].(*MessageBody)
+	return s.Content["messageBody"].(*MessageBody)
 }
 
 func (s *Send) SetTitle(str string) *Send {
@@ -104,7 +104,7 @@ func (s *Send) SetClickContent(str string) *Send {
 }
 
 func (s *Send) platform() *PlatformParam {
-	return s.content["platform"].(*PlatformParam)
+	return s.Content["platform"].(*PlatformParam)
 }
 
 func (s *Send) SetHWAppId(str string) *Send {
@@ -128,7 +128,7 @@ type IOSParam struct {
 }
 
 func (s *Send) iosParam() *IOSParam {
-	return s.content["iosParam"].(*IOSParam)
+	return s.Content["iosParam"].(*IOSParam)
 }
 
 func (s *Send) SetIOSParam(str string) (*Send, error) {
@@ -223,7 +223,7 @@ func (s *Send) SetVIAuthToken(str string) *Send {
 
 func (s *Send) SendMessage() (*Response, error) {
 	var messageBody MessageBody
-	mPoint := s.content["messageBody"].(*MessageBody)
+	mPoint := s.Content["messageBody"].(*MessageBody)
 	mJson, _ := json.Marshal(mPoint)
 	json.Unmarshal(mJson, &messageBody)
 	fmt.Println("messageBody", messageBody)
@@ -233,19 +233,19 @@ func (s *Send) SendMessage() (*Response, error) {
 		log.Println("点击内容不能为空")
 	}
 
-	pushId := s.content["pushId"].([]string)
+	pushId := s.Content["pushId"].([]string)
 
 	var platform PlatformParam
-	pPoint := s.content["platform"].(*PlatformParam)
+	pPoint := s.Content["platform"].(*PlatformParam)
 	pJson, _ := json.Marshal(pPoint)
 	_ = json.Unmarshal(pJson, &platform)
 	fmt.Println("platform", platform)
-	switch s.content["channel"].(string) {
+	switch s.Content["channel"].(string) {
 	case "hw":
 		return hwMessagesSend(messageBody, pushId, platform.HWAppId, platform.HWClientSecret)
 	case "ios":
-		iosBundleId := s.content["iosParam"].(*IOSParam).BundleId
-		iosToken := s.content["iosParam"].(*IOSParam).Bearer
+		iosBundleId := s.Content["iosParam"].(*IOSParam).BundleId
+		iosToken := s.Content["iosParam"].(*IOSParam).Bearer
 		return iOSMessagesSend(messageBody, pushId, iosBundleId, iosToken)
 	case "mi":
 		return miMessageSend(messageBody, pushId, platform.MIAppSecret, platform.MIRestrictedPackageName)

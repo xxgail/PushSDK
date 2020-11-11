@@ -25,6 +25,12 @@ type NoticeExpandInfo struct {
 	NoticeExpandContent string `json:"noticeExpandContent"` // 展示内容、为文本时必填
 }
 
+var clickTypeMZ = map[string]int{
+	"app":       0,
+	"url":       2,
+	"customize": 1,
+}
+
 type ClickTypeInfo struct {
 	ClickType       int               `json:"clickType"`       // 点击动作 0-打开应用（默认）、1-打开应用页面、2-打开URI页面、3-应用客户端自定义
 	Url             string            `json:"url"`             // clickType=2时必填
@@ -68,9 +74,10 @@ func initMessageMZ(m MessageBody) *Message {
 			NoticeExpandContent: "",
 		},
 		ClickTypeInfo: ClickTypeInfo{
-			ClickType:  0,
+			ClickType:  clickTypeMZ[m.ClickType],
+			Url:        m.ClickContent,
 			Parameters: map[string]string{},
-			Activity:   "",
+			Activity:   m.ClickContent,
 		},
 		PushTimeInfo: PushTimeInfo{
 			OffLine:   0, // 是否进离线消息 否 是 【 非必填，默认值为 】

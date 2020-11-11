@@ -34,6 +34,12 @@ type AndroidNotification struct {
 	Badge       BadgeNotification `json:"badge"` // 角标
 }
 
+var clickTypeHW = map[string]int{
+	"app":       3,
+	"url":       2,
+	"customize": 1,
+}
+
 type ClickAction struct {
 	Type   int    `json:"type"`   // 1-打开应自定义页面、2-打开URL、3-打开应用APP
 	Intent string `json:"intent"` // 自定义页面中intent的实现
@@ -59,9 +65,11 @@ func initMessageHW(m MessageBody, token []string) *Message {
 					Title: m.Title,
 					Body:  m.Desc,
 					ClickAction: ClickAction{
-						Type:   1,
+						Type:   clickTypeHW[m.ClickType],
+						Url:    m.ClickContent,
 						Intent: "#Intent;compo=com.rvr/.Activity;S.W=U;end",
 					},
+					Tag: m.ApnsId,
 				},
 			},
 			Token: token,

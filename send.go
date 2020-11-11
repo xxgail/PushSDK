@@ -19,9 +19,11 @@ type Send struct {
 }
 
 type MessageBody struct {
-	Title  string
-	Desc   string
-	ApnsId string
+	Title        string
+	Desc         string
+	ApnsId       string
+	ClickType    string
+	ClickContent string
 }
 
 type PlatformParam struct {
@@ -55,6 +57,18 @@ func NewSend() *Send {
 	}
 }
 
+// 设置渠道
+func (s *Send) SetChannel(channel string) *Send {
+	s.content["channel"] = channel
+	return s
+}
+
+// 设置推送用户
+func (s *Send) SetPushId(pushId []string) *Send {
+	s.content["pushId"] = pushId
+	return s
+}
+
 func (s *Send) message() *MessageBody {
 	return s.content["messageBody"].(*MessageBody)
 }
@@ -77,13 +91,13 @@ func (s *Send) SetApnsId(str string) *Send {
 	return s
 }
 
-func (s *Send) SetChannel(channel string) *Send {
-	s.content["channel"] = channel
+func (s *Send) SetClickType(str string) *Send {
+	s.message().ClickType = str
 	return s
 }
 
-func (s *Send) SetPushId(pushId []string) *Send {
-	s.content["pushId"] = pushId
+func (s *Send) SetClickContent(str string) *Send {
+	s.message().ClickContent = str
 	return s
 }
 
@@ -176,21 +190,17 @@ func (s *Send) SetVIAuthToken(str string) *Send {
 	return s
 }
 
-//func InitSend(message *MessageBody, channel string, pushId []string, platformParam PlatformParam) *Send {
-//	return &Send{
-//		MessageBody:   *message,
-//		Channel:       channel,
-//		PushId:        pushId,
-//		PlatformParam: platformParam,
-//	}
-//}
-
 func (s *Send) SendMessage() (*Response, error) {
 	var messageBody MessageBody
 	mPoint := s.content["messageBody"].(*MessageBody)
 	mJson, _ := json.Marshal(mPoint)
 	json.Unmarshal(mJson, &messageBody)
 	fmt.Println("messageBody", messageBody)
+	if messageBody.ClickType == "" {
+		messageBody.ClickType = "app"
+	} else if messageBody.ClickType != "app" && messageBody.ClickContent == "" {
+		log.Println("点击内容不能为空")
+	}
 
 	pushId := s.content["pushId"].([]string)
 

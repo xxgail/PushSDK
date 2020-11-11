@@ -32,7 +32,7 @@ func initMessageIOS(m MessageBody) *Message {
 				Title: m.Title,
 				Body:  m.Desc,
 			},
-			Badge: 10,
+			Badge: 1,
 		},
 	}
 	fieldsStr, _ := json.Marshal(fields)

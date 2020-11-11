@@ -13,6 +13,12 @@ type MessageFields struct {
 	Notification OPPONotification `json:"notification"`
 }
 
+var clickTypeOPPO = map[string]int{
+	"app":       0,
+	"url":       2,
+	"customize": 1,
+}
+
 type OPPONotification struct {
 	AppMessageId        string `json:"app_message_id"`   // 消息tag
 	Style               int    `json:"style"`            // 1-标准样式（默认1） 2-长文本 3-大图
@@ -34,10 +40,14 @@ func initMessageOPPO(m MessageBody, registrationIds []string) *Message {
 			TargetType:  2,
 			TargetValue: v,
 			Notification: OPPONotification{
-				Style:    1,
-				Title:    m.Title,
-				SubTitle: m.Title,
-				Content:  m.Desc,
+				AppMessageId:        m.ApnsId,
+				Style:               1,
+				Title:               m.Title,
+				SubTitle:            m.Title,
+				Content:             m.Desc,
+				ClickActionType:     clickTypeOPPO[m.ClickType],
+				ClickActionActivity: m.ClickContent,
+				ClickActionUrl:      m.ClickContent,
 			},
 		}
 		messages = append(messages, message)

@@ -24,6 +24,12 @@ type MIFields struct {
 	Extra                 Extra  `json:"extra"`
 }
 
+var clickTypeMi = map[string]int{
+	"app":       1,
+	"url":       3,
+	"customize": 2,
+}
+
 type Extra struct {
 	NotifyEffect int    `json:"notify_effect"` // “1″：通知栏点击后打开app的Launcher Activity。 “2″：通知栏点击后打开app的任一Activity（开发者还需要传入extra.intent_uri）。 “3″：通知栏点击后打开网页（开发者还需要传入extra.web_uri）。
 	IntentUri    string `json:"intent_uri"`
@@ -43,6 +49,12 @@ func initMessageMi(m MessageBody) *Message {
 		Title:       m.Title,
 		Description: m.Desc,
 		NotifyType:  "-1",
+		NotifyId:    m.ApnsId,
+		Extra: Extra{
+			NotifyEffect: clickTypeMi[m.ClickType],
+			IntentUri:    m.ClickContent,
+			WebUri:       m.ClickContent,
+		},
 	}
 	fieldsStr, _ := json.Marshal(fields)
 	return &Message{

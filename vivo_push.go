@@ -15,6 +15,12 @@ const (
 	VIVOGroupSend  = "/message/pushToList"
 )
 
+var clickTypeV = map[string]int{
+	"app":       1,
+	"url":       2,
+	"customize": 4,
+}
+
 type VFieldSingle struct {
 	RegId       string `json:"regId"`
 	NotifyType  int    `json:"notifyType"` // 通知类型 1.无、2-响铃、3-振动、4-响铃和振动
@@ -46,8 +52,8 @@ func initMessageSingleV(m MessageBody, pushId string) *Message {
 		Title:       m.Title,
 		Content:     m.Desc,
 		TimeToLive:  86400,
-		SkipType:    2,
-		SkipContent: "http://baidu.com",
+		SkipType:    clickTypeV[m.ClickType],
+		SkipContent: m.ClickContent,
 		RequestId:   m.ApnsId,
 	}
 	vFiledStr, _ := json.Marshal(vFiled)

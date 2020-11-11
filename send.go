@@ -133,12 +133,12 @@ func (s *Send) hwParam() *HWParam {
 
 func (s *Send) SetHWParam(str string) *Send {
 	s.Err = isEmpty(str)
-	var hwParam HWParam
-	_ = json.Unmarshal([]byte(str), &hwParam)
-	s.hwParam().AppId = hwParam.AppId
-	s.hwParam().ClientSecret = hwParam.ClientSecret
-	t := reflect.TypeOf(s.hwParam())
-	v := reflect.ValueOf(s.hwParam())
+	var param HWParam
+	_ = json.Unmarshal([]byte(str), &param)
+	s.hwParam().AppId = param.AppId
+	s.hwParam().ClientSecret = param.ClientSecret
+	t := reflect.TypeOf(param)
+	v := reflect.ValueOf(param)
 	for k := 0; k < t.NumField(); k++ {
 		if v.Field(k).Interface() == nil {
 			s.Err = errors.New(t.Field(k).Name + "不能为空")
@@ -173,23 +173,32 @@ func (s *Send) iosParam() *IOSParam {
 
 func (s *Send) SetIOSParam(str string) *Send {
 	s.Err = isEmpty(str)
-	var iosParam IOSParam
-	_ = json.Unmarshal([]byte(str), &iosParam)
-	s.iosParam().KeyId = iosParam.KeyId
-	s.iosParam().TeamId = iosParam.TeamId
-	s.iosParam().BundleId = iosParam.BundleId
-	s.iosParam().AuthTokenPath = iosParam.AuthTokenPath
-	if iosParam.Bearer == "" {
-		s.iosParam().Bearer = iosParam.generateIfExpired()
-	} else {
-		s.iosParam().Bearer = iosParam.Bearer
+	var param IOSParam
+	_ = json.Unmarshal([]byte(str), &param)
+	if param.KeyId == "" {
+		s.Err = errors.New("KeyId" + "can not be empty")
+		return s
 	}
-	t := reflect.TypeOf(s.iosParam())
-	v := reflect.ValueOf(s.iosParam())
-	for k := 0; k < t.NumField(); k++ {
-		if v.Field(k).Interface() == nil {
-			s.Err = errors.New(t.Field(k).Name + "不能为空")
-		}
+	if param.TeamId == "" {
+		s.Err = errors.New("TeamId" + "can not be empty")
+		return s
+	}
+	if param.BundleId == "" {
+		s.Err = errors.New("BundleId" + "can not be empty")
+		return s
+	}
+	if param.AuthTokenPath == "" {
+		s.Err = errors.New("AuthTokenPath" + "can not be empty")
+		return s
+	}
+	s.iosParam().KeyId = param.KeyId
+	s.iosParam().TeamId = param.TeamId
+	s.iosParam().BundleId = param.BundleId
+	s.iosParam().AuthTokenPath = param.AuthTokenPath
+	if param.Bearer == "" {
+		s.iosParam().Bearer = param.generateIfExpired()
+	} else {
+		s.iosParam().Bearer = param.Bearer
 	}
 	return s
 }
@@ -234,8 +243,8 @@ func (s *Send) SetMIParam(str string) *Send {
 	_ = json.Unmarshal([]byte(str), &param)
 	s.miParam().AppSecret = param.AppSecret
 	s.miParam().RestrictedPackageName = param.RestrictedPackageName
-	t := reflect.TypeOf(s.miParam())
-	v := reflect.ValueOf(s.miParam())
+	t := reflect.TypeOf(param)
+	v := reflect.ValueOf(param)
 	for k := 0; k < t.NumField(); k++ {
 		if v.Field(k).Interface() == nil {
 			s.Err = errors.New(t.Field(k).Name + "不能为空")
@@ -269,8 +278,8 @@ func (s *Send) SetMZParam(str string) *Send {
 	_ = json.Unmarshal([]byte(str), &param)
 	s.mzParam().AppSecret = param.AppSecret
 	s.mzParam().AppId = param.AppId
-	t := reflect.TypeOf(s.mzParam())
-	v := reflect.ValueOf(s.mzParam())
+	t := reflect.TypeOf(param)
+	v := reflect.ValueOf(param)
 	for k := 0; k < t.NumField(); k++ {
 		if v.Field(k).Interface() == nil {
 			s.Err = errors.New(t.Field(k).Name + "不能为空")
@@ -304,8 +313,8 @@ func (s *Send) SetOPPOParam(str string) *Send {
 	_ = json.Unmarshal([]byte(str), &param)
 	s.oppoParam().AppKey = param.AppKey
 	s.oppoParam().MasterSecret = param.MasterSecret
-	t := reflect.TypeOf(s.oppoParam())
-	v := reflect.ValueOf(s.oppoParam())
+	t := reflect.TypeOf(param)
+	v := reflect.ValueOf(param)
 	for k := 0; k < t.NumField(); k++ {
 		if v.Field(k).Interface() == nil {
 			s.Err = errors.New(t.Field(k).Name + "不能为空")
@@ -339,22 +348,27 @@ func (s *Send) vParam() *VParam {
 
 func (s *Send) SetVIVOParam(str string) *Send {
 	s.Err = isEmpty(str)
-	var vParam VParam
-	_ = json.Unmarshal([]byte(str), &vParam)
-	s.vParam().AppID = vParam.AppID
-	s.vParam().AppKey = vParam.AppKey
-	s.vParam().AppSecret = vParam.AppSecret
-	if vParam.AuthToken == "" {
-		s.vParam().AuthToken = vParam.generateIfExpired()
-	} else {
-		s.vParam().AuthToken = vParam.AuthToken
+	var param VParam
+	_ = json.Unmarshal([]byte(str), &param)
+	if param.AppID == "" {
+		s.Err = errors.New("AppId" + "can not be empty")
+		return s
 	}
-	t := reflect.TypeOf(s.vParam())
-	v := reflect.ValueOf(s.vParam())
-	for k := 0; k < t.NumField(); k++ {
-		if v.Field(k).Interface() == nil {
-			s.Err = errors.New(t.Field(k).Name + "不能为空")
-		}
+	if param.AppKey == "" {
+		s.Err = errors.New("AppKey" + "can not be empty")
+		return s
+	}
+	if param.AppSecret == "" {
+		s.Err = errors.New("AppSecret" + "can not be empty")
+		return s
+	}
+	s.vParam().AppID = param.AppID
+	s.vParam().AppKey = param.AppKey
+	s.vParam().AppSecret = param.AppSecret
+	if param.AuthToken == "" {
+		s.vParam().AuthToken = param.generateIfExpired()
+	} else {
+		s.vParam().AuthToken = param.AuthToken
 	}
 	return s
 }

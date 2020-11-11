@@ -34,6 +34,9 @@ func getApnsId() string {
 }
 
 func isEmpty(s string) error {
+	if s == "" {
+		return errors.New("platform param can not be empty")
+	}
 	var m map[string]string
 	_ = json.Unmarshal([]byte(s), &m)
 	for k, v := range m {

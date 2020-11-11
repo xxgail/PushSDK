@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"sync"
 )
 
 //type Send struct {
@@ -53,6 +54,7 @@ func NewSend() *Send {
 			"channel":     "",
 			"pushId":      []string{},
 			"platform":    &PlatformParam{},
+			"iosParam":    &IOSParam{},
 		},
 	}
 }
@@ -113,6 +115,35 @@ func (s *Send) SetHWAppId(str string) *Send {
 func (s *Send) SetHWClientSecret(str string) *Send {
 	s.platform().HWClientSecret = str
 	return s
+}
+
+type IOSParam struct {
+	sync.Mutex
+	KeyId         string `json:"key_id"`
+	TeamId        string `json:"team_id"`
+	BundleId      string `json:"bundle_id"`
+	AuthTokenPath string `json:"auth_token_path"`
+	Bearer        string `json:"bearer"`
+	IssuedAt      int64  `json:"issued_at"`
+}
+
+func (s *Send) iosParam() *IOSParam {
+	return s.content["iosParam"].(*IOSParam)
+}
+
+func (s *Send) SetIOSParam(str string) (*Send, error) {
+	var iosParam IOSParam
+	_ = json.Unmarshal([]byte(str), &iosParam)
+	s.iosParam().KeyId = iosParam.KeyId
+	s.iosParam().TeamId = iosParam.TeamId
+	s.iosParam().BundleId = iosParam.BundleId
+	s.iosParam().AuthTokenPath = iosParam.AuthTokenPath
+	if iosParam.Bearer == "" {
+		s.iosParam().Bearer = iosParam.generateIfExpired()
+	} else {
+		s.iosParam().Bearer = iosParam.Bearer
+	}
+	return s, nil
 }
 
 func (s *Send) SetIOSKeyId(str string) *Send {
@@ -213,7 +244,9 @@ func (s *Send) SendMessage() (*Response, error) {
 	case "hw":
 		return hwMessagesSend(messageBody, pushId, platform.HWAppId, platform.HWClientSecret)
 	case "ios":
-		return iOSMessagesSend(messageBody, pushId, platform.IOSBundleId, platform.IOSAuthToken)
+		iosBundleId := s.content["iosParam"].(*IOSParam).BundleId
+		iosToken := s.content["iosParam"].(*IOSParam).Bearer
+		return iOSMessagesSend(messageBody, pushId, iosBundleId, iosToken)
 	case "mi":
 		return miMessageSend(messageBody, pushId, platform.MIAppSecret, platform.MIRestrictedPackageName)
 	case "mz":

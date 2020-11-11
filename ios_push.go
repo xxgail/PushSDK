@@ -44,6 +44,7 @@ func initMessageIOS(m MessageBody) *Message {
 const (
 	IOSProductionHost = "https://api.development.push.apple.com"
 	IOSMessageURL     = "/3/device/"
+	TokenTimeout      = 3000
 )
 
 const (
@@ -131,4 +132,26 @@ func GetAuthTokenIOS(authTokenPath string, keyID string, teamID string) (string,
 	}
 
 	return bearer, nil
+}
+
+func (i *IOSParam) generateIfExpired() string {
+	i.Lock()
+	defer i.Unlock()
+	if i.Expired() {
+		i.Generate()
+	}
+	return i.Bearer
+}
+
+func (i *IOSParam) Expired() bool {
+	return time.Now().Unix() >= (i.IssuedAt + TokenTimeout)
+}
+
+func (i *IOSParam) Generate() (bool, error) {
+	bearer, err := GetAuthTokenIOS(i.AuthTokenPath, i.KeyId, i.TeamId)
+	if bearer != "" {
+		i.Bearer = bearer
+		i.IssuedAt = time.Now().Unix()
+	}
+	return true, err
 }

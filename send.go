@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"reflect"
 	"sync"
 )
 
@@ -136,6 +137,13 @@ func (s *Send) SetHWParam(str string) *Send {
 	_ = json.Unmarshal([]byte(str), &hwParam)
 	s.hwParam().AppId = hwParam.AppId
 	s.hwParam().ClientSecret = hwParam.ClientSecret
+	t := reflect.TypeOf(s.hwParam())
+	v := reflect.ValueOf(s.hwParam())
+	for k := 0; k < t.NumField(); k++ {
+		if v.Field(k).Interface() == nil {
+			s.Err = errors.New(t.Field(k).Name + "不能为空")
+		}
+	}
 	return s
 }
 
@@ -175,6 +183,13 @@ func (s *Send) SetIOSParam(str string) *Send {
 		s.iosParam().Bearer = iosParam.generateIfExpired()
 	} else {
 		s.iosParam().Bearer = iosParam.Bearer
+	}
+	t := reflect.TypeOf(s.iosParam())
+	v := reflect.ValueOf(s.iosParam())
+	for k := 0; k < t.NumField(); k++ {
+		if v.Field(k).Interface() == nil {
+			s.Err = errors.New(t.Field(k).Name + "不能为空")
+		}
 	}
 	return s
 }
@@ -219,6 +234,13 @@ func (s *Send) SetMIParam(str string) *Send {
 	_ = json.Unmarshal([]byte(str), &param)
 	s.miParam().AppSecret = param.AppSecret
 	s.miParam().RestrictedPackageName = param.RestrictedPackageName
+	t := reflect.TypeOf(s.miParam())
+	v := reflect.ValueOf(s.miParam())
+	for k := 0; k < t.NumField(); k++ {
+		if v.Field(k).Interface() == nil {
+			s.Err = errors.New(t.Field(k).Name + "不能为空")
+		}
+	}
 	return s
 }
 
@@ -247,6 +269,13 @@ func (s *Send) SetMZParam(str string) *Send {
 	_ = json.Unmarshal([]byte(str), &param)
 	s.mzParam().AppSecret = param.AppSecret
 	s.mzParam().AppId = param.AppId
+	t := reflect.TypeOf(s.mzParam())
+	v := reflect.ValueOf(s.mzParam())
+	for k := 0; k < t.NumField(); k++ {
+		if v.Field(k).Interface() == nil {
+			s.Err = errors.New(t.Field(k).Name + "不能为空")
+		}
+	}
 	return s
 }
 
@@ -275,6 +304,13 @@ func (s *Send) SetOPPOParam(str string) *Send {
 	_ = json.Unmarshal([]byte(str), &param)
 	s.oppoParam().AppKey = param.AppKey
 	s.oppoParam().MasterSecret = param.MasterSecret
+	t := reflect.TypeOf(s.oppoParam())
+	v := reflect.ValueOf(s.oppoParam())
+	for k := 0; k < t.NumField(); k++ {
+		if v.Field(k).Interface() == nil {
+			s.Err = errors.New(t.Field(k).Name + "不能为空")
+		}
+	}
 	return s
 }
 
@@ -313,6 +349,13 @@ func (s *Send) SetVIVOParam(str string) *Send {
 	} else {
 		s.vParam().AuthToken = vParam.AuthToken
 	}
+	t := reflect.TypeOf(s.vParam())
+	v := reflect.ValueOf(s.vParam())
+	for k := 0; k < t.NumField(); k++ {
+		if v.Field(k).Interface() == nil {
+			s.Err = errors.New(t.Field(k).Name + "不能为空")
+		}
+	}
 	return s
 }
 
@@ -338,7 +381,7 @@ func (s *Send) SetVIAuthToken(str string) *Send {
 
 func (s *Send) SendMessage() (*Response, error) {
 	var messageBody MessageBody
-	mPoint := s.Content["messageBody"].(*MessageBody)
+	mPoint := s.message()
 	mJson, _ := json.Marshal(mPoint)
 	json.Unmarshal(mJson, &messageBody)
 	fmt.Println("messageBody", messageBody)
@@ -351,17 +394,17 @@ func (s *Send) SendMessage() (*Response, error) {
 	pushId := s.Content["pushId"].([]string)
 	switch s.Content["channel"].(string) {
 	case "hw":
-		return hwMessagesSend(messageBody, pushId, s.Content["hwParam"].(*HWParam))
+		return hwMessagesSend(messageBody, pushId, s.hwParam())
 	case "ios":
-		return iOSMessagesSend(messageBody, pushId, s.Content["iosParam"].(*IOSParam))
+		return iOSMessagesSend(messageBody, pushId, s.iosParam())
 	case "mi":
-		return miMessageSend(messageBody, pushId, s.Content["miParam"].(*MIParam))
+		return miMessageSend(messageBody, pushId, s.miParam())
 	case "mz":
-		return mzMessageSend(messageBody, pushId, s.Content["mzParam"].(*MZParam))
+		return mzMessageSend(messageBody, pushId, s.mzParam())
 	case "oppo":
-		return oppoMessageSend(messageBody, pushId, s.Content["oppoParam"].(*OPPOParam))
+		return oppoMessageSend(messageBody, pushId, s.oppoParam())
 	case "vivo":
-		return vSendMessage(messageBody, pushId, s.Content["vParam"].(*VParam))
+		return vSendMessage(messageBody, pushId, s.vParam())
 	default:
 		return &Response{
 			Code:   SendError,

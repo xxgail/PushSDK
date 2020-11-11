@@ -27,12 +27,12 @@ type Android struct {
 }
 
 type AndroidNotification struct {
-	Title       string            `form:"title" json:"title"`
-	Body        string            `form:"body" json:"body"`
-	Icon        string            `json:"icon"` // 小图标
-	Tag         string            `json:"tag"`  // 消息标签
-	ClickAction ClickAction       `json:"click_action"`
-	Badge       BadgeNotification `json:"badge"` // 角标
+	Title       string      `form:"title" json:"title"`
+	Body        string      `form:"body" json:"body"`
+	Icon        string      `json:"icon"` // 小图标
+	Tag         string      `json:"tag"`  // 消息标签
+	ClickAction ClickAction `json:"click_action"`
+	//Badge       BadgeNotification `json:"badge"` // 角标
 }
 
 var clickTypeHW = map[string]int{

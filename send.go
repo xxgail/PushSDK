@@ -55,6 +55,7 @@ func NewSend() *Send {
 			"messageBody": &MessageBody{},
 			"channel":     "",
 			"pushId":      []string{},
+			"platform":    "",
 			//"platform":    &PlatformParam{},
 			"iosParam":  &IOSParam{},
 			"hwParam":   &HWParam{},
@@ -79,6 +80,11 @@ func (s *Send) SetPushId(pushId []string) *Send {
 	return s
 }
 
+func (s *Send) SetPlatForm(plat string) *Send {
+	s.Content["platform"] = plat
+	return s
+}
+
 func (s *Send) message() *MessageBody {
 	return s.Content["messageBody"].(*MessageBody)
 }
@@ -86,9 +92,6 @@ func (s *Send) message() *MessageBody {
 func (s *Send) SetTitle(str string) *Send {
 	if str == "" {
 		s.Err = errors.New("推送标题不能为空")
-	}
-	if len(str) > 40 {
-		s.Err = errors.New("标题字符串长度不能大于40")
 	}
 	s.message().Title = str
 	return s
@@ -406,18 +409,37 @@ func (s *Send) SendMessage() (*Response, error) {
 	}
 
 	pushId := s.Content["pushId"].([]string)
+	plat := s.Content["platform"].(string)
 	switch s.Content["channel"].(string) {
 	case "hw":
+		if s.hwParam() == nil {
+			s.SetHWParam(plat)
+		}
 		return hwMessagesSend(messageBody, pushId, s.hwParam())
 	case "ios":
+		if s.iosParam() == nil {
+			s.SetIOSParam(plat)
+		}
 		return iOSMessagesSend(messageBody, pushId, s.iosParam())
 	case "mi":
+		if s.miParam() == nil {
+			s.SetMIParam(plat)
+		}
 		return miMessageSend(messageBody, pushId, s.miParam())
 	case "mz":
+		if s.mzParam() == nil {
+			s.SetMZParam(plat)
+		}
 		return mzMessageSend(messageBody, pushId, s.mzParam())
 	case "oppo":
+		if s.oppoParam() == nil {
+			s.SetOPPOParam(plat)
+		}
 		return oppoMessageSend(messageBody, pushId, s.oppoParam())
 	case "vivo":
+		if s.vParam() == nil {
+			s.SetVIVOParam(plat)
+		}
 		return vSendMessage(messageBody, pushId, s.vParam())
 	default:
 		return &Response{

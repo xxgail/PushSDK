@@ -8,3 +8,9 @@ type Response struct {
 	ApnsId    string
 	TimeStamp time.Time
 }
+
+func (r *Response) init() *Response {
+	return &Response{
+		TimeStamp: time.Now(),
+	}
+}

@@ -4,22 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"reflect"
 	"sync"
 )
-
-//type Send struct {
-//	MessageBody   MessageBody
-//	Channel       string
-//	PushId        []string
-//	PlatformParam PlatformParam
-//}
-
-type Send struct {
-	Content map[string]interface{}
-	Err     error
-}
 
 type MessageBody struct {
 	Title        string
@@ -27,36 +14,77 @@ type MessageBody struct {
 	ApnsId       string
 	ClickType    string
 	ClickContent string
+	Err          error
 }
 
-type PlatformParam struct {
-	HWAppId                 string `json:"hw_appId"`
-	HWClientSecret          string `json:"hw_clientSecret"`
-	IOSKeyId                string `json:"iOS_keyId"`
-	IOSTeamId               string `json:"iOS_teamId"`
-	IOSBundleId             string `json:"iOS_bundleId"`
-	IOSAuthTokenPath        string `json:"iOS_authTokenPath"`
-	IOSAuthToken            string `json:"iOS_authToken"`
-	MIAppSecret             string `json:"mi_appSecret"`
-	MIRestrictedPackageName string `json:"mi_restrictedPackageName"`
-	MZAppId                 string `json:"mz_appId"`
-	MZAppSecret             string `json:"mz_appSecret"`
-	OPPOAppKey              string `json:"oppo_appKey"`
-	OPPOMasterSecret        string `json:"oppo_masterSecret"`
-	VIAppID                 string `json:"vi_appId"`
-	VIAppKey                string `json:"vi_appKey"`
-	VIAppSecret             string `json:"vi_appSecret"`
-	VIAuthToken             string `json:"vi_authToken"`
+func NewMessage() *MessageBody {
+	return &MessageBody{
+		ClickType: "app",
+	}
+}
+
+func (m *MessageBody) SetTitle(str string) *MessageBody {
+	if str == "" {
+		m.Err = errors.New("推送标题不能为空")
+	}
+	m.Title = str
+	return m
+}
+
+func (m *MessageBody) SetContent(str string) *MessageBody {
+	if str == "" {
+		m.Err = errors.New("推送内容不能为空")
+	}
+	m.Desc = str
+	return m
+}
+
+func (m *MessageBody) SetApnsId(str string) *MessageBody {
+	m.ApnsId = str
+	return m
+}
+
+func (m *MessageBody) SetClickType(str string) *MessageBody {
+	m.ClickType = str
+	return m
+}
+
+func (m *MessageBody) SetClickContent(str string) *MessageBody {
+	m.ClickContent = str
+	return m
+}
+
+//type PlatformParam struct {
+//	HWAppId                 string `json:"hw_appId"`
+//	HWClientSecret          string `json:"hw_clientSecret"`
+//	IOSKeyId                string `json:"iOS_keyId"`
+//	IOSTeamId               string `json:"iOS_teamId"`
+//	IOSBundleId             string `json:"iOS_bundleId"`
+//	IOSAuthTokenPath        string `json:"iOS_authTokenPath"`
+//	IOSAuthToken            string `json:"iOS_authToken"`
+//	MIAppSecret             string `json:"mi_appSecret"`
+//	MIRestrictedPackageName string `json:"mi_restrictedPackageName"`
+//	MZAppId                 string `json:"mz_appId"`
+//	MZAppSecret             string `json:"mz_appSecret"`
+//	OPPOAppKey              string `json:"oppo_appKey"`
+//	OPPOMasterSecret        string `json:"oppo_masterSecret"`
+//	VIAppID                 string `json:"vi_appId"`
+//	VIAppKey                string `json:"vi_appKey"`
+//	VIAppSecret             string `json:"vi_appSecret"`
+//	VIAuthToken             string `json:"vi_authToken"`
+//}
+
+type Send struct {
+	Channel  string
+	PushId   []string
+	PlatForm string
+	Content  map[string]interface{}
+	Err      error
 }
 
 func NewSend() *Send {
 	return &Send{
 		Content: map[string]interface{}{
-			"messageBody": &MessageBody{},
-			"channel":     "",
-			"pushId":      []string{},
-			"platform":    "",
-			//"platform":    &PlatformParam{},
 			"iosParam":  &IOSParam{},
 			"hwParam":   &HWParam{},
 			"miParam":   &MIParam{},
@@ -70,59 +98,20 @@ func NewSend() *Send {
 
 // 设置渠道
 func (s *Send) SetChannel(channel string) *Send {
-	s.Content["channel"] = channel
+	s.Channel = channel
 	return s
 }
 
 // 设置推送用户
 func (s *Send) SetPushId(pushId []string) *Send {
-	s.Content["pushId"] = pushId
+	s.PushId = pushId
 	return s
 }
 
 func (s *Send) SetPlatForm(plat string) *Send {
-	s.Content["platform"] = plat
+	s.PlatForm = plat
 	return s
 }
-
-func (s *Send) message() *MessageBody {
-	return s.Content["messageBody"].(*MessageBody)
-}
-
-func (s *Send) SetTitle(str string) *Send {
-	if str == "" {
-		s.Err = errors.New("推送标题不能为空")
-	}
-	s.message().Title = str
-	return s
-}
-
-func (s *Send) SetContent(str string) *Send {
-	if str == "" {
-		s.Err = errors.New("推送内容不能为空")
-	}
-	s.message().Desc = str
-	return s
-}
-
-func (s *Send) SetApnsId(str string) *Send {
-	s.message().ApnsId = str
-	return s
-}
-
-func (s *Send) SetClickType(str string) *Send {
-	s.message().ClickType = str
-	return s
-}
-
-func (s *Send) SetClickContent(str string) *Send {
-	s.message().ClickContent = str
-	return s
-}
-
-//func (s *Send) platform() *PlatformParam {
-//	return s.Content["platform"].(*PlatformParam)
-//}
 
 type HWParam struct {
 	sync.Mutex
@@ -150,15 +139,15 @@ func (s *Send) SetHWParam(str string) *Send {
 	return s
 }
 
-func (s *Send) SetHWAppId(str string) *Send {
-	s.hwParam().AppId = str
-	return s
-}
-
-func (s *Send) SetHWClientSecret(str string) *Send {
-	s.hwParam().ClientSecret = str
-	return s
-}
+//func (s *Send) SetHWAppId(str string) *Send {
+//	s.hwParam().AppId = str
+//	return s
+//}
+//
+//func (s *Send) SetHWClientSecret(str string) *Send {
+//	s.hwParam().ClientSecret = str
+//	return s
+//}
 
 type IOSParam struct {
 	sync.Mutex
@@ -206,30 +195,30 @@ func (s *Send) SetIOSParam(str string) *Send {
 	return s
 }
 
-func (s *Send) SetIOSKeyId(str string) *Send {
-	s.iosParam().KeyId = str
-	return s
-}
-
-func (s *Send) SetIOSTeamId(str string) *Send {
-	s.iosParam().TeamId = str
-	return s
-}
-
-func (s *Send) SetIOSBundleId(str string) *Send {
-	s.iosParam().BundleId = str
-	return s
-}
-
-func (s *Send) SetIOSAuthTokenPath(str string) *Send {
-	s.iosParam().AuthTokenPath = str
-	return s
-}
-
-func (s *Send) SetIOSAuthToken(str string) *Send {
-	s.iosParam().Bearer = str
-	return s
-}
+//func (s *Send) SetIOSKeyId(str string) *Send {
+//	s.iosParam().KeyId = str
+//	return s
+//}
+//
+//func (s *Send) SetIOSTeamId(str string) *Send {
+//	s.iosParam().TeamId = str
+//	return s
+//}
+//
+//func (s *Send) SetIOSBundleId(str string) *Send {
+//	s.iosParam().BundleId = str
+//	return s
+//}
+//
+//func (s *Send) SetIOSAuthTokenPath(str string) *Send {
+//	s.iosParam().AuthTokenPath = str
+//	return s
+//}
+//
+//func (s *Send) SetIOSAuthToken(str string) *Send {
+//	s.iosParam().Bearer = str
+//	return s
+//}
 
 type MIParam struct {
 	AppSecret             string `json:"app_secret"`
@@ -256,15 +245,15 @@ func (s *Send) SetMIParam(str string) *Send {
 	return s
 }
 
-func (s *Send) SetMIAppSecret(str string) *Send {
-	s.miParam().AppSecret = str
-	return s
-}
-
-func (s *Send) SetMIRestrictedPackageName(str string) *Send {
-	s.miParam().RestrictedPackageName = str
-	return s
-}
+//func (s *Send) SetMIAppSecret(str string) *Send {
+//	s.miParam().AppSecret = str
+//	return s
+//}
+//
+//func (s *Send) SetMIRestrictedPackageName(str string) *Send {
+//	s.miParam().RestrictedPackageName = str
+//	return s
+//}
 
 type MZParam struct {
 	AppSecret string `json:"app_secret"`
@@ -291,15 +280,15 @@ func (s *Send) SetMZParam(str string) *Send {
 	return s
 }
 
-func (s *Send) SetMZAppId(str string) *Send {
-	s.mzParam().AppId = str
-	return s
-}
-
-func (s *Send) SetMZAppSecret(str string) *Send {
-	s.mzParam().AppSecret = str
-	return s
-}
+//func (s *Send) SetMZAppId(str string) *Send {
+//	s.mzParam().AppId = str
+//	return s
+//}
+//
+//func (s *Send) SetMZAppSecret(str string) *Send {
+//	s.mzParam().AppSecret = str
+//	return s
+//}
 
 type OPPOParam struct {
 	AppKey       string `json:"app_key"`
@@ -326,15 +315,15 @@ func (s *Send) SetOPPOParam(str string) *Send {
 	return s
 }
 
-func (s *Send) SetOPPOAppKey(str string) *Send {
-	s.oppoParam().AppKey = str
-	return s
-}
-
-func (s *Send) SetOPPOMasterSecret(str string) *Send {
-	s.oppoParam().MasterSecret = str
-	return s
-}
+//func (s *Send) SetOPPOAppKey(str string) *Send {
+//	s.oppoParam().AppKey = str
+//	return s
+//}
+//
+//func (s *Send) SetOPPOMasterSecret(str string) *Send {
+//	s.oppoParam().MasterSecret = str
+//	return s
+//}
 
 type VParam struct {
 	sync.Mutex
@@ -376,71 +365,70 @@ func (s *Send) SetVIVOParam(str string) *Send {
 	return s
 }
 
-func (s *Send) SetVIAppID(str string) *Send {
-	s.vParam().AppID = str
-	return s
-}
+//func (s *Send) SetVIAppID(str string) *Send {
+//	s.vParam().AppID = str
+//	return s
+//}
+//
+//func (s *Send) SetVIAppKey(str string) *Send {
+//	s.vParam().AppKey = str
+//	return s
+//}
+//
+//func (s *Send) SetVIAppSecret(str string) *Send {
+//	s.vParam().AppSecret = str
+//	return s
+//}
+//
+//func (s *Send) SetVIAuthToken(str string) *Send {
+//	s.vParam().AuthToken = str
+//	return s
+//}
 
-func (s *Send) SetVIAppKey(str string) *Send {
-	s.vParam().AppKey = str
-	return s
-}
-
-func (s *Send) SetVIAppSecret(str string) *Send {
-	s.vParam().AppSecret = str
-	return s
-}
-
-func (s *Send) SetVIAuthToken(str string) *Send {
-	s.vParam().AuthToken = str
-	return s
-}
-
-func (s *Send) SendMessage() (*Response, error) {
-	var messageBody MessageBody
-	mPoint := s.message()
-	mJson, _ := json.Marshal(mPoint)
-	json.Unmarshal(mJson, &messageBody)
+func (s *Send) SendMessage(message *MessageBody) (*Response, error) {
+	messageBody := *message
 	fmt.Println("messageBody", messageBody)
-	if messageBody.ClickType == "" {
-		messageBody.ClickType = "app"
-	} else if messageBody.ClickType != "app" && messageBody.ClickContent == "" {
-		log.Println("点击内容不能为空")
+	if messageBody.Title == "" {
+		return &Response{}, errors.New("标题不能为空")
 	}
-
-	pushId := s.Content["pushId"].([]string)
-	plat := s.Content["platform"].(string)
-	switch s.Content["channel"].(string) {
+	if messageBody.Desc == "" {
+		return &Response{}, errors.New("内容不能为空")
+	}
+	if messageBody.ClickType != "app" && messageBody.ClickContent == "" {
+		return &Response{}, errors.New("点击内容不能为空")
+	}
+	channel := s.Channel
+	if channel == "" {
+		return &Response{}, errors.New("发送渠道不能为空")
+	}
+	pushId := s.PushId
+	if len(pushId) == 0 {
+		return &Response{}, errors.New("发送用户不能为空")
+	}
+	plat := s.PlatForm
+	if plat == "" {
+		return &Response{}, errors.New("请设置相应发送渠道参数")
+	}
+	switch channel {
 	case "hw":
-		if s.hwParam() == nil {
-			s.SetHWParam(plat)
-		}
-		fmt.Println(s.hwParam())
+		fmt.Println("plat-----", plat)
+		s.SetHWParam(plat)
+		fmt.Println("hwParam-----", s.hwParam())
 		return hwMessagesSend(messageBody, pushId, s.hwParam())
 	case "ios":
-		if s.iosParam() == nil {
-			s.SetIOSParam(plat)
-		}
+		s.SetIOSParam(plat)
 		return iOSMessagesSend(messageBody, pushId, s.iosParam())
 	case "mi":
-		if s.miParam() == nil {
-			s.SetMIParam(plat)
-		}
+		s.SetMIParam(plat)
 		return miMessageSend(messageBody, pushId, s.miParam())
 	case "mz":
-		if s.mzParam() == nil {
-			s.SetMZParam(plat)
-		}
+		s.SetMZParam(plat)
 		return mzMessageSend(messageBody, pushId, s.mzParam())
 	case "oppo":
-		if s.oppoParam() == nil {
-			s.SetOPPOParam(plat)
-		}
+		s.SetOPPOParam(plat)
 		return oppoMessageSend(messageBody, pushId, s.oppoParam())
 	case "vivo":
-		if s.vParam() == nil {
-			s.SetVIVOParam(plat)
-		}
+		s.SetVIVOParam(plat)
 		return vSendMessage(messageBody, pushId, s.vParam())
 	default:
 		return &Response{

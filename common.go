@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"math/rand"
+	"runtime"
 	"strconv"
 	"time"
 )
@@ -45,4 +47,15 @@ func isEmpty(s string) error {
 		}
 	}
 	return nil
+}
+
+func getRandomApnsId() string {
+	randStr := strconv.Itoa(rand.Int())
+	apns := md5Str(strconv.FormatInt(time.Now().Unix(), 10) + randStr)
+	return apns[:8] + "-" + apns[8:12] + "-" + apns[12:16] + "-" + apns[16:20] + "-" + apns[20:]
+}
+
+func getFileLineNum() string {
+	_, file, line, _ := runtime.Caller(1)
+	return time.Now().Format("2006-01-02 15:04:05") + "▶ 我走到这里啦！" + file + "--line" + strconv.Itoa(line)
 }

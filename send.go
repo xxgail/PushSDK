@@ -415,6 +415,7 @@ func (s *Send) SendMessage() (*Response, error) {
 		if s.hwParam() == nil {
 			s.SetHWParam(plat)
 		}
+		fmt.Println(s.hwParam())
 		return hwMessagesSend(messageBody, pushId, s.hwParam())
 	case "ios":
 		if s.iosParam() == nil {

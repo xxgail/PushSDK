@@ -26,7 +26,7 @@ type MIFields struct {
 	NotifyId              string `json:"notify_id"`               //同一个notifyId在通知栏只会保留一条
 	TimeToLive            string `json:"time_to_live"`            //可选项，当用户离线是，消息保留时间，默认两周，单位ms
 	TimeToSend            string `json:"time_to_send"`            //可选项，定时发送消息，用自1970年1月1日以来00:00:00.0 UTC时间表示（以毫秒为单位的时间）。
-	Extra                 Extra  `json:"extra"`
+	Extra                 string `json:"extra"`
 }
 
 var clickTypeMi = map[string]int{
@@ -49,17 +49,19 @@ func (mi *MI) initMessage(m *MessageBody) *Message {
 		Ext:          "",
 	}
 	payloadStr, _ := json.Marshal(payload)
+	var extra = Extra{
+		NotifyEffect: clickTypeMi[m.ClickType],
+		IntentUri:    m.ClickContent,
+		WebUri:       m.ClickContent,
+	}
+	extraStr, _ := json.Marshal(extra)
 	fields := MIFields{
 		Payload:     string(payloadStr),
 		Title:       m.Title,
 		Description: m.Desc,
 		NotifyType:  "-1",
 		NotifyId:    m.ApnsId,
-		Extra: Extra{
-			NotifyEffect: clickTypeMi[m.ClickType],
-			IntentUri:    m.ClickContent,
-			WebUri:       m.ClickContent,
-		},
+		Extra:       string(extraStr),
 	}
 	fieldsStr, _ := json.Marshal(fields)
 	return &Message{

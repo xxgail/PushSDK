@@ -36,8 +36,56 @@ func (s *Send) SetPlatForm(plat string) *Send {
 	return s
 }
 
-type MobileChannel interface {
-	SendMessage(body *MessageBody, pushId []string) (*Response, error)
+func (s *Send) SendMessage(message *MessageBody) (*Response, error) {
+	var (
+		err error
+	)
+	if message.Title == "" {
+		return &Response{}, errors.New("title can not be empty")
+	}
+	if message.Desc == "" {
+		return &Response{}, errors.New("content can not be empty")
+	}
+	if message.ClickType != "app" && message.ClickContent == "" {
+		return &Response{}, errors.New("ClickContent can not be empty")
+	}
+	channel := s.Channel
+	if channel == "" {
+		return &Response{}, errors.New("channel can not be empty")
+	}
+	pushId := s.PushId
+	if len(pushId) == 0 {
+		return &Response{}, errors.New("pushId can not be empty")
+	}
+	plat := s.PlatForm
+	if plat == "" {
+		return &Response{}, errors.New("please set platform param of channel")
+	}
+
+	var mc MobileChannel
+	switch channel {
+	case "hw":
+		mc, err = setHWParam(plat)
+	case "ios":
+		mc, err = setIOSParam(plat)
+	case "mi":
+		mc, err = setMIParam(plat)
+	case "mz":
+		mc, err = setMZParam(plat)
+	case "oppo":
+		mc, err = setOPPOParam(plat)
+	case "vivo":
+		mc, err = setVIVOParam(plat)
+	default:
+		return &Response{
+			Code:   SendError,
+			Reason: "No channel",
+		}, nil
+	}
+	if err != nil {
+		return &Response{}, err
+	}
+	return mc.SendMessage(message, pushId)
 }
 
 func setHWParam(str string) (*HW, error) {
@@ -131,56 +179,4 @@ func setVIVOParam(str string) (*VIVO, error) {
 		param.generateIfExpired()
 	}
 	return param, err
-}
-
-func (s *Send) SendMessage(message *MessageBody) (*Response, error) {
-	var (
-		err error
-	)
-	if message.Title == "" {
-		return &Response{}, errors.New("title can not be empty")
-	}
-	if message.Desc == "" {
-		return &Response{}, errors.New("content can not be empty")
-	}
-	if message.ClickType != "app" && message.ClickContent == "" {
-		return &Response{}, errors.New("ClickContent can not be empty")
-	}
-	channel := s.Channel
-	if channel == "" {
-		return &Response{}, errors.New("channel can not be empty")
-	}
-	pushId := s.PushId
-	if len(pushId) == 0 {
-		return &Response{}, errors.New("pushId can not be empty")
-	}
-	plat := s.PlatForm
-	if plat == "" {
-		return &Response{}, errors.New("please set platform param of channel")
-	}
-
-	var mc MobileChannel
-	switch channel {
-	case "hw":
-		mc, err = setHWParam(plat)
-	case "ios":
-		mc, err = setIOSParam(plat)
-	case "mi":
-		mc, err = setMIParam(plat)
-	case "mz":
-		mc, err = setMZParam(plat)
-	case "oppo":
-		mc, err = setOPPOParam(plat)
-	case "vivo":
-		mc, err = setVIVOParam(plat)
-	default:
-		return &Response{
-			Code:   SendError,
-			Reason: "No channel",
-		}, nil
-	}
-	if err != nil {
-		return &Response{}, err
-	}
-	return mc.SendMessage(message, pushId)
 }

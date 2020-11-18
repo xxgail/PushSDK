@@ -4,7 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
 )
+
+type HW struct {
+	sync.Mutex
+	AppId        string `json:"app_id"`
+	ClientSecret string `json:"client_secret"`
+}
 
 type HWFields struct {
 	Message MessageNotification `json:"message"`
@@ -54,7 +61,7 @@ type BadgeNotification struct {
 	SetNum int    `json:"set_num"` // 角标设置数字，大于等于0小于100的整数。如果set_num与add_num同时存在时，以set_num为准
 }
 
-func initMessageHW(m MessageBody, token []string) *Message {
+func (h *HW) initMessage(m *MessageBody, token []string) *Message {
 	fields := HWFields{
 		Message: MessageNotification{
 			Notification: Notification{
@@ -102,9 +109,9 @@ type HWResult struct {
 	RequestId string `json:"requestId,omitempty"` //请求标识。
 }
 
-func hwMessagesSend(m MessageBody, token []string, h *HWParam) (*Response, error) {
+func (h *HW) SendMessage(m *MessageBody, token []string) (*Response, error) {
 	response := &Response{}
-	message := initMessageHW(m, token)
+	message := h.initMessage(m, token)
 	fields := message.Fields.(string)
 	if h.AppId == "" {
 		return response, errors.New("AppId 不能为空")
@@ -114,6 +121,7 @@ func hwMessagesSend(m MessageBody, token []string, h *HWParam) (*Response, error
 	accessToken := getAccessToken(h.AppId, h.ClientSecret)
 	header["Authorization"] = fmt.Sprintf("Bearer %s", accessToken)
 	body, err := postReqJson(requestUrl, fields, header)
+	fmt.Println("result-hw", string(body))
 	if err != nil {
 		response.Code = HTTPERROR
 		return response, err
@@ -123,7 +131,7 @@ func hwMessagesSend(m MessageBody, token []string, h *HWParam) (*Response, error
 	if err != nil {
 
 	}
-	fmt.Println(result)
+
 	if result.Code != HWSuccess {
 		response.Code = SendError
 		response.Reason = result.Msg
@@ -146,15 +154,12 @@ func getAccessToken(clientId, clientSecret string) string {
 	forms["client_id"] = clientId
 	forms["client_secret"] = clientSecret
 	header := make(map[string]string)
-	fmt.Println(requestPath)
-	fmt.Println(forms)
 	body, err := postReqUrlencoded(requestPath, forms, header)
 	var result = &TokenResult{}
 	err = json.Unmarshal(body, result)
 	if err != nil {
 		fmt.Println("getAccessToken Unmarshal", err)
 	}
-	fmt.Println("请求AccessToken结果：", result)
 
 	accessToken = result.AccessToken
 

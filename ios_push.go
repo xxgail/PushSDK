@@ -8,8 +8,19 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
+	"sync"
 	"time"
 )
+
+type IOS struct {
+	sync.Mutex
+	KeyId         string `json:"key_id"`
+	TeamId        string `json:"team_id"`
+	BundleId      string `json:"bundle_id"`
+	AuthTokenPath string `json:"auth_token_path"`
+	Bearer        string `json:"bearer"`
+	IssuedAt      int64  `json:"issued_at"`
+}
 
 type IOSFields struct {
 	Aps Aps `json:"aps"`
@@ -25,7 +36,7 @@ type Alert struct {
 	Body  string `json:"body"`
 }
 
-func initMessageIOS(m MessageBody) *Message {
+func (i *IOS) initMessage(m *MessageBody) *Message {
 	fields := IOSFields{
 		Aps: Aps{
 			Alert: Alert{
@@ -69,9 +80,9 @@ type ErrResult struct {
 	Reason string `json:"reason"`
 }
 
-func iOSMessagesSend(m MessageBody, token []string, i *IOSParam) (*Response, error) {
+func (i *IOS) SendMessage(m *MessageBody, token []string) (*Response, error) {
 	response := &Response{}
-	message := initMessageIOS(m)
+	message := i.initMessage(m)
 	fields := message.Fields.(string)
 	header := make(map[string]string)
 	header["apns-topic"] = i.BundleId
@@ -80,14 +91,12 @@ func iOSMessagesSend(m MessageBody, token []string, i *IOSParam) (*Response, err
 
 	for _, v := range token {
 		requestUrl := IOSProductionHost + IOSMessageURL + v
-		fmt.Println("111111111", requestUrl)
-		fmt.Println("222222222", fields)
-		fmt.Println("333333333", header)
 		body, err := postReqJson(requestUrl, fields, header)
 		if err != nil {
 			response.Code = HTTPERROR
 			return response, err
 		}
+		fmt.Println("result-ios", string(body))
 		if string(body) != "" {
 			var errRes = &ErrResult{}
 			err = json.Unmarshal(body, errRes)
@@ -134,7 +143,7 @@ func GetAuthTokenIOS(authTokenPath string, keyID string, teamID string) (string,
 	return bearer, nil
 }
 
-func (i *IOSParam) generateIfExpired() string {
+func (i *IOS) generateIfExpired() string {
 	i.Lock()
 	defer i.Unlock()
 	if i.Expired() {
@@ -143,11 +152,11 @@ func (i *IOSParam) generateIfExpired() string {
 	return i.Bearer
 }
 
-func (i *IOSParam) Expired() bool {
+func (i *IOS) Expired() bool {
 	return time.Now().Unix() >= (i.IssuedAt + IOSTokenTimeout)
 }
 
-func (i *IOSParam) Generate() (bool, error) {
+func (i *IOS) Generate() (bool, error) {
 	bearer, err := GetAuthTokenIOS(i.AuthTokenPath, i.KeyId, i.TeamId)
 	if bearer != "" {
 		i.Bearer = bearer

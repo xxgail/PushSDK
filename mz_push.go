@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+type MZ struct {
+	AppSecret string `json:"app_secret"`
+	AppId     string `json:"app_id"`
+}
+
 type MessageJson struct {
 	NoticeBarInfo    NoticeBarInfo    `json:"noticeBarInfo"`
 	NoticeExpandInfo NoticeExpandInfo `json:"noticeExpandInfo"`
@@ -61,7 +66,7 @@ type PushTimeInfo struct {
 //	Sound   int `json:"sound"`
 //}
 
-func initMessageMZ(m MessageBody) *Message {
+func (mz *MZ) initMessage(m *MessageBody) *Message {
 	var messageJson MessageJson
 	messageJson = MessageJson{
 		NoticeBarInfo: NoticeBarInfo{
@@ -109,13 +114,13 @@ type MZResult struct {
 	MsgId    string `json:"msgId"`
 }
 
-func mzMessageSend(m MessageBody, pushIds []string, mz *MZParam) (*Response, error) {
+func (mz *MZ) SendMessage(m *MessageBody, pushIds []string) (*Response, error) {
 	response := &Response{}
-	message := initMessageMZ(m)
+	message := mz.initMessage(m)
 	fields := message.Fields.(map[string]string)
 	fields["appId"] = mz.AppId
 	fields["pushIds"] = strings.Join(pushIds, ",")
-	fields["sign"] = generateSign(fields, mz.AppSecret)
+	fields["sign"] = mz.generateSign(fields)
 	requestUrl := MZProductionHost + MZMessageURL
 	header := make(map[string]string)
 	body, err := postReqUrlencoded(requestUrl, fields, header)
@@ -123,13 +128,12 @@ func mzMessageSend(m MessageBody, pushIds []string, mz *MZParam) (*Response, err
 		response.Code = HTTPERROR
 		return response, err
 	}
-
+	fmt.Println("result-mz", string(body))
 	var result = &MZResult{}
 	err = json.Unmarshal(body, result)
 	if err != nil {
 
 	}
-	fmt.Println("rrrrrrrrrrrresult", result)
 	if result.Code != MZSuccess && result.Value != "" {
 		response.Code = SendError
 		response.Reason = result.Message
@@ -151,7 +155,7 @@ const (
 	MZAppInBlackList = "110009"
 )
 
-func generateSign(params map[string]string, appSecret string) string {
+func (mz *MZ) generateSign(params map[string]string) string {
 	keys := make([]string, 0, len(params))
 	for k, _ := range params {
 		keys = append(keys, k)
@@ -162,5 +166,5 @@ func generateSign(params map[string]string, appSecret string) string {
 	for _, v := range keys {
 		str += fmt.Sprintf("%v=%v", v, params[v])
 	}
-	return md5Str(str + appSecret)
+	return md5Str(str + mz.AppSecret)
 }

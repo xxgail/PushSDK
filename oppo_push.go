@@ -7,6 +7,11 @@ import (
 	"time"
 )
 
+type OPPO struct {
+	AppKey       string `json:"app_key"`
+	MasterSecret string `json:"master_secret"`
+}
+
 type MessageFields struct {
 	TargetType   int              `json:"target_type"`
 	TargetValue  string           `json:"target_value"`
@@ -33,7 +38,7 @@ type OPPONotification struct {
 	ActionParameters    string `json:"action_parameters"`     // 传递给网页或应用的参数 json 格式
 }
 
-func initMessageOPPO(m MessageBody, registrationIds []string) *Message {
+func (o *OPPO) initMessage(m *MessageBody, registrationIds []string) *Message {
 	var messages []MessageFields
 	for _, v := range registrationIds {
 		message := MessageFields{
@@ -89,25 +94,24 @@ type Data struct {
 	ErrorMessage   string `json:"errorMessage"`
 }
 
-func oppoMessageSend(m MessageBody, pushIds []string, o *OPPOParam) (*Response, error) {
+func (o *OPPO) SendMessage(m *MessageBody, pushIds []string) (*Response, error) {
 	response := &Response{}
-	message := initMessageOPPO(m, pushIds)
+	message := o.initMessage(m, pushIds)
 	fields := message.Fields.(map[string]string)
 	requestUrl := OPPOProductionHost + OPPOMessageURL
 	header := make(map[string]string)
-	header["auth_token"], _ = getAuthTokenOPPO(o.AppKey, o.MasterSecret)
+	header["auth_token"], _ = o.getAuthTokenOPPO()
 	body, err := postReqUrlencoded(requestUrl, fields, header)
 	if err != nil {
 		response.Code = HTTPERROR
 		return response, err
 	}
-
+	fmt.Println("result-oppo", string(body))
 	var result = &OPPOResult{}
 	err = json.Unmarshal(body, result)
 	if err != nil {
 
 	}
-	fmt.Println("rrrrrrrrrrrresult", result)
 	if result.Code != OPPOSuccess {
 		response.Code = SendError
 		response.Reason = result.Message
@@ -126,14 +130,14 @@ type OPPOTokenData struct {
 	CreateTime int    `json:"create_time"`
 }
 
-func getAuthTokenOPPO(appKey string, masterSecret string) (string, error) {
+func (o *OPPO) getAuthTokenOPPO() (string, error) {
 	var authToken string
 	// 毫秒级
 	currentTimeStr := strconv.FormatInt(time.Now().UnixNano()/(1e6), 10)
 	requestUrl := OPPOProductionHost + OPPOTokenURL
 	forms := make(map[string]string)
-	forms["app_key"] = appKey
-	forms["sign"] = sha256Encode(appKey + currentTimeStr + masterSecret)
+	forms["app_key"] = o.AppKey
+	forms["sign"] = sha256Encode(o.AppKey + currentTimeStr + o.MasterSecret)
 	forms["timestamp"] = currentTimeStr
 	header := make(map[string]string)
 

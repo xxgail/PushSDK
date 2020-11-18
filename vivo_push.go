@@ -4,8 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"sync"
 	"time"
 )
+
+type VIVO struct {
+	sync.Mutex
+	AppID     string `json:"app_id"`
+	AppKey    string `json:"app_key"`
+	AppSecret string `json:"app_secret"`
+	AuthToken string `json:"auth_token"`
+	IssuedAt  int64  `json:"issued_at"`
+}
 
 const (
 	VIVOProductUrl   = "https://api-push.vivo.com.cn"
@@ -43,7 +53,7 @@ const (
 	V10056      = "title不能超过40个字符串"
 )
 
-func initMessageSingleV(m MessageBody, pushId string) *Message {
+func (v *VIVO) initMessageSingle(m *MessageBody, pushId string) *Message {
 	if m.ApnsId == "" {
 		m.ApnsId = getApnsId()
 	}
@@ -74,7 +84,7 @@ type GroupMessage struct {
 	RequestId string `json:"requestId"` // 消息唯一标识
 }
 
-func initGroupMessage(m MessageBody) string {
+func (v *VIVO) initGroupMessage(m *MessageBody) string {
 	if m.ApnsId == "" {
 		m.ApnsId = getApnsId()
 	}
@@ -104,25 +114,22 @@ type VResult struct {
 	InvalidUser string `json:"invalidUser"` // 非法用户信息
 }
 
-func vSendMessage(m MessageBody, pushId []string, v *VParam) (*Response, error) {
+func (v *VIVO) SendMessage(m *MessageBody, pushId []string) (*Response, error) {
 	response := &Response{}
 	header := make(map[string]string)
 	header["authToken"] = v.AuthToken
 	var body []byte
 	if len(pushId) == 1 {
-		message := initMessageSingleV(m, pushId[0])
+		message := v.initMessageSingle(m, pushId[0])
 		forms := message.Fields.(string)
 		var err error
-		fmt.Println(VIVOProductUrl + VIVOSingleSend)
-		fmt.Println(forms)
-		fmt.Println(header)
 		body, err = postReqJson(VIVOProductUrl+VIVOSingleSend, forms, header)
 		if err != nil {
 			response.Code = HTTPERROR
 			return response, err
 		}
 	} else {
-		forms := initGroupMessage(m)
+		forms := v.initGroupMessage(m)
 		bodyTask, err := postReqJson(VIVOProductUrl+VIVOGroupTask, forms, header)
 		var resultTask = &VResult{}
 		err = json.Unmarshal(bodyTask, &resultTask)
@@ -144,7 +151,7 @@ func vSendMessage(m MessageBody, pushId []string, v *VParam) (*Response, error) 
 		}
 	}
 	var result VResult
-	fmt.Println("vvvvvv", string(body))
+	fmt.Println("result-vivo", string(body))
 	err := json.Unmarshal(body, &result)
 	if err != nil {
 
@@ -192,7 +199,6 @@ func GetAuthTokenV(appId, appKey, appSecret string) string {
 	}
 
 	var result = &AuthTokenResult{}
-	fmt.Println("vivo-token-body", string(body))
 	err = json.Unmarshal(body, result)
 	if err != nil {
 
@@ -203,7 +209,7 @@ func GetAuthTokenV(appId, appKey, appSecret string) string {
 	return result.AuthToken
 }
 
-func (v *VParam) generateIfExpired() string {
+func (v *VIVO) generateIfExpired() string {
 	v.Lock()
 	defer v.Unlock()
 	if v.Expired() {
@@ -212,11 +218,11 @@ func (v *VParam) generateIfExpired() string {
 	return v.AuthToken
 }
 
-func (v *VParam) Expired() bool {
+func (v *VIVO) Expired() bool {
 	return time.Now().Unix() >= (v.IssuedAt + VIVOTokenTimeout)
 }
 
-func (v *VParam) Generate() (bool, error) {
+func (v *VIVO) Generate() (bool, error) {
 	bearer := GetAuthTokenV(v.AppID, v.AppKey, v.AppSecret)
 	if bearer != "" {
 		v.AuthToken = bearer

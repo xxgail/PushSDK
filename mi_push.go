@@ -6,6 +6,11 @@ import (
 	"strings"
 )
 
+type MI struct {
+	AppSecret             string `json:"app_secret"`
+	RestrictedPackageName string `json:"restricted_package_name"`
+}
+
 const (
 	MiProductionHost  = "https://api.xmpush.xiaomi.com"
 	MiMessageRegIdURL = "/v3/message/regid"
@@ -36,7 +41,7 @@ type Extra struct {
 	WebUri       string `json:"web_uri"`
 }
 
-func initMessageMi(m MessageBody) *Message {
+func (mi *MI) initMessage(m *MessageBody) *Message {
 	var payload = &Payload{
 		PushTitle:    m.Title,
 		PushBody:     m.Desc,
@@ -89,9 +94,9 @@ type Payload struct {
 	Ext          string `json:"ext"`
 }
 
-func miMessageSend(m MessageBody, regIds []string, mi *MIParam) (*Response, error) {
+func (mi *MI) SendMessage(m *MessageBody, regIds []string) (*Response, error) {
 	response := &Response{}
-	message := initMessageMi(m)
+	message := mi.initMessage(m)
 	fieldsStr := message.Fields.(string)
 	var fields map[string]string
 	err := json.Unmarshal([]byte(fieldsStr), &fields)
@@ -111,13 +116,12 @@ func miMessageSend(m MessageBody, regIds []string, mi *MIParam) (*Response, erro
 		response.Code = HTTPERROR
 		return response, err
 	}
-
+	fmt.Println("result-mi", string(body))
 	var result = &MIResult{}
 	err = json.Unmarshal(body, result)
 	if err != nil {
 
 	}
-	fmt.Println("rrrrrrrrrrrresult", result)
 	if result.Code != MiSuccess {
 		response.Code = SendError
 		response.Reason = result.Reason

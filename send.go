@@ -85,21 +85,22 @@ func (s *Send) SendMessage(message *Message) (*Response, error) {
 	switch channel {
 	case "hw":
 		mc, err = setHWParam(plat)
+		break
 	case "ios":
 		mc, err = setIOSParam(plat)
+		break
 	case "mi":
 		mc, err = setMIParam(plat)
+		break
 	case "mz":
 		mc, err = setMZParam(plat)
+		break
 	case "oppo":
 		mc, err = setOPPOParam(plat)
+		break
 	case "vivo":
 		mc, err = setVIVOParam(plat)
-	default:
-		return &Response{
-			Code:   SendError,
-			Reason: "No channel",
-		}, nil
+		break
 	}
 	if err != nil {
 		return &Response{}, err

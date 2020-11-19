@@ -32,7 +32,7 @@ func main() {
     message.SetTitle("title").SetContent("content")
     // 2. 发送
     send := PushSDK.NewSend()
-    send.SetChannel("ios") // 发送渠道，全部小写
+    send.SetChannel("ios") // 发送渠道
     send.SetPushId([]string{"xxxx"}) // 发送用户device_token，数组格式
     send.SetPlatForm("{app_id:xxxx}") // 渠道对应参数，详见下表 channel-param
     response,_ := send.SendMessage(message) // 发送

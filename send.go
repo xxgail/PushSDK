@@ -3,6 +3,7 @@ package PushSDK
 import (
 	"encoding/json"
 	"errors"
+	"strings"
 )
 
 type Send struct {
@@ -18,14 +19,32 @@ func NewSend() *Send {
 	}
 }
 
+var (
+	AvailableChannel = []string{"ios", "mi", "hw", "oppo", "vivo", "mz"}
+)
+
+func checkChannel(str string) error {
+	for _, v := range AvailableChannel {
+		if v == str {
+			return nil
+		}
+	}
+	return errors.New("channel 参数错误！")
+}
+
 // 设置渠道
 func (s *Send) SetChannel(channel string) *Send {
+	channel = strings.ToLower(channel)
+	s.Err = checkChannel(channel)
 	s.Channel = channel
 	return s
 }
 
 // 设置推送用户
 func (s *Send) SetPushId(pushId []string) *Send {
+	if len(pushId) == 0 {
+		s.Err = errors.New("发送用户不能为空")
+	}
 	s.PushId = pushId
 	return s
 }

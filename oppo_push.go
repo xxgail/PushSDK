@@ -48,7 +48,7 @@ func (o *OPPO) initMessage(m *Message, registrationIds []string) map[string]stri
 				AppMessageId:        m.ApnsId,
 				Style:               1,
 				Title:               m.Title,
-				SubTitle:            m.Title,
+				SubTitle:            "",
 				Content:             m.Desc,
 				ClickActionType:     clickTypeOPPO[m.ClickType],
 				ClickActionActivity: m.ClickContent,

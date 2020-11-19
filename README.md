@@ -1,4 +1,6 @@
 # PushSDK
+[![PkgGoDev](https://pkg.go.dev/badge/github.com/xxgail/PushSDK)](https://pkg.go.dev/github.com/xxgail/PushSDK)
+
 Go-PushSDK
 给APNS发推送消息。包括iOS、华为、小米、魅族、OPPO、vivo
 
@@ -9,6 +11,7 @@ Go-PushSDK
 `go get github.com/xxgail/PushSDK`
 
 
+
 - [builder.go](https://github.com/xxgail/PushSDK/blob/master/builder.go) 构建消息体
 - [common.go](https://github.com/xxgail/PushSDK/blob/master/common.go) 包内的公共方法
 - [const.go](https://github.com/xxgail/PushSDK/blob/master/const.go) 定义常量
@@ -16,6 +19,7 @@ Go-PushSDK
 - xx_push.go 各个渠道的推送具体请求
 - [result_common.go](https://github.com/xxgail/PushSDK/blob/master/result_common.go) 返回格式
 - [send.go](https://github.com/xxgail/PushSDK/blob/master/send.go) sendMessage主体步骤
+
 
 # example
 ```go
@@ -40,6 +44,8 @@ func main() {
 }
 
 ```
+
+
 # channel-param
 | **channel** | **plat** |
 | --- | --- |
@@ -49,6 +55,8 @@ func main() {
 | mz | {"app_id":"xxx","app_secret":"xxx"} |
 | oppo | {"app_key":"xxx","master_secret":"xxx"} |
 | vivo | {"app_id":"xxx","app_key":"xxx","app_secret":"xxx"} |
+
+
 
 # 具体传输方式
 | **channel** | **device_token来源** | **请求方式** | **URL** | **Content-Type** | **request-header** | **消息体结构** | **device_token位置** |
@@ -61,5 +69,7 @@ func main() {
 | vivo| regId | POST| [https://api-push.vivo.com.cn](https://api-push.vivo.com.cn)/message/send | application/json | "authToken" = authToken | json格式 | 在json消息体中 |
 
 
+
 # 参考来源
-> ios- Local and Remote Notification Programming Guide [https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW1](https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW1)
+> Local and Remote Notification Programming Guide [https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW1](https://developer.apple.com/library/archive/documentation/NetworkingInternet/Conceptual/RemoteNotificationsPG/CommunicatingwithAPNs.html#//apple_ref/doc/uid/TP40008194-CH11-SW1)
+> hw推送服务-HTTPS下行消息 [https://developer.huawei.com/consumer/cn/doc/HMSCore-References-V5/https-send-api-0000001050986197-V5#ZH-CN_TOPIC_0000001050986197__section723545214380](https://developer.huawei.com/consumer/cn/doc/HMSCore-References-V5/https-send-api-0000001050986197-V5#ZH-CN_TOPIC_0000001050986197__section723545214380)

@@ -3,7 +3,6 @@ package PushSDK
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 )
 
@@ -64,12 +63,9 @@ func (mi *MI) initMessage(m *Message) map[string]string {
 		NotifyId:    m.ApnsId,
 		Extra:       string(extraStr),
 	}
-	t := reflect.TypeOf(fields)
-	v := reflect.ValueOf(fields)
+	fieldsStr, _ := json.Marshal(fields)
 	fieldsMap := make(map[string]string)
-	for k := 0; k < t.NumField(); k++ {
-		fieldsMap[t.Field(k).Name] = v.Field(k).Interface().(string)
-	}
+	_ = json.Unmarshal(fieldsStr, &fieldsMap)
 	return fieldsMap
 }
 

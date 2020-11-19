@@ -2,7 +2,6 @@ package PushSDK
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sync"
 )
@@ -61,7 +60,7 @@ type BadgeNotification struct {
 	SetNum int    `json:"set_num"` // 角标设置数字，大于等于0小于100的整数。如果set_num与add_num同时存在时，以set_num为准
 }
 
-func (h *HW) initMessage(m *MessageBody, token []string) *Message {
+func (h *HW) initMessage(m *Message, token []string) string {
 	fields := HWFields{
 		Message: MessageNotification{
 			Notification: Notification{
@@ -84,9 +83,7 @@ func (h *HW) initMessage(m *MessageBody, token []string) *Message {
 		},
 	}
 	fieldsStr, _ := json.Marshal(fields)
-	return &Message{
-		Fields: string(fieldsStr),
-	}
+	return string(fieldsStr)
 }
 
 const (
@@ -109,18 +106,14 @@ type HWResult struct {
 	RequestId string `json:"requestId,omitempty"` //请求标识。
 }
 
-func (h *HW) SendMessage(m *MessageBody, token []string) (*Response, error) {
+func (h *HW) SendMessage(m *Message, token []string) (*Response, error) {
 	response := &Response{}
-	message := h.initMessage(m, token)
-	fields := message.Fields.(string)
-	if h.AppId == "" {
-		return response, errors.New("AppId 不能为空")
-	}
+	forms := h.initMessage(m, token)
 	requestUrl := HWProductionHost + h.AppId + HWMessageURL
 	header := make(map[string]string)
 	accessToken := getAccessToken(h.AppId, h.ClientSecret)
 	header["Authorization"] = fmt.Sprintf("Bearer %s", accessToken)
-	body, err := postReqJson(requestUrl, fields, header)
+	body, err := postReqJson(requestUrl, forms, header)
 	fmt.Println("result-hw", string(body))
 	if err != nil {
 		response.Code = HTTPERROR

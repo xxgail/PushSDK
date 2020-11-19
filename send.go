@@ -36,7 +36,7 @@ func (s *Send) SetPlatForm(plat string) *Send {
 	return s
 }
 
-func (s *Send) SendMessage(message *MessageBody) (*Response, error) {
+func (s *Send) SendMessage(message *Message) (*Response, error) {
 	var (
 		err error
 	)

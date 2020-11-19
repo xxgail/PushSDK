@@ -3,6 +3,7 @@ package PushSDK
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"strings"
 )
 
@@ -41,7 +42,7 @@ type Extra struct {
 	WebUri       string `json:"web_uri"`
 }
 
-func (mi *MI) initMessage(m *MessageBody) *Message {
+func (mi *MI) initMessage(m *Message) map[string]string {
 	var payload = &Payload{
 		PushTitle:    m.Title,
 		PushBody:     m.Desc,
@@ -63,10 +64,13 @@ func (mi *MI) initMessage(m *MessageBody) *Message {
 		NotifyId:    m.ApnsId,
 		Extra:       string(extraStr),
 	}
-	fieldsStr, _ := json.Marshal(fields)
-	return &Message{
-		Fields: string(fieldsStr),
+	t := reflect.TypeOf(fields)
+	v := reflect.ValueOf(fields)
+	fieldsMap := make(map[string]string)
+	for k := 0; k < t.NumField(); k++ {
+		fieldsMap[t.Field(k).Name] = v.Field(k).Interface().(string)
 	}
+	return fieldsMap
 }
 
 type MIResult struct {
@@ -96,24 +100,18 @@ type Payload struct {
 	Ext          string `json:"ext"`
 }
 
-func (mi *MI) SendMessage(m *MessageBody, regIds []string) (*Response, error) {
+func (mi *MI) SendMessage(m *Message, regIds []string) (*Response, error) {
 	response := &Response{}
-	message := mi.initMessage(m)
-	fieldsStr := message.Fields.(string)
-	var fields map[string]string
-	err := json.Unmarshal([]byte(fieldsStr), &fields)
-	if err != nil {
-		fmt.Println("field json.Unmarshal error", err)
-	}
-	fields["registration_id"] = strings.Join(regIds, ",")
-	fields["restricted_package_name"] = mi.RestrictedPackageName
+	forms := mi.initMessage(m)
+	forms["registration_id"] = strings.Join(regIds, ",")
+	forms["restricted_package_name"] = mi.RestrictedPackageName
 
 	requestUrl := MiProductionHost + MiMessageRegIdURL
 
 	header := make(map[string]string)
 	header["Authorization"] = fmt.Sprintf("key=%s", mi.AppSecret)
 
-	body, err := postReqUrlencoded(requestUrl, fields, header)
+	body, err := postReqUrlencoded(requestUrl, forms, header)
 	if err != nil {
 		response.Code = HTTPERROR
 		return response, err

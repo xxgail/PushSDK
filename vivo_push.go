@@ -53,7 +53,7 @@ const (
 	V10056      = "title不能超过40个字符串"
 )
 
-func (v *VIVO) initMessageSingle(m *MessageBody, pushId string) *Message {
+func (v *VIVO) initMessageSingle(m *Message, pushId string) string {
 	if m.ApnsId == "" {
 		m.ApnsId = getApnsId()
 	}
@@ -68,9 +68,7 @@ func (v *VIVO) initMessageSingle(m *MessageBody, pushId string) *Message {
 		RequestId:   m.ApnsId,
 	}
 	vFiledStr, _ := json.Marshal(vFiled)
-	return &Message{
-		Fields: string(vFiledStr),
-	}
+	return string(vFiledStr)
 }
 
 type GroupMessage struct {
@@ -84,7 +82,7 @@ type GroupMessage struct {
 	RequestId string `json:"requestId"` // 消息唯一标识
 }
 
-func (v *VIVO) initGroupMessage(m *MessageBody) string {
+func (v *VIVO) initGroupMessage(m *Message) string {
 	if m.ApnsId == "" {
 		m.ApnsId = getApnsId()
 	}
@@ -114,14 +112,13 @@ type VResult struct {
 	InvalidUser string `json:"invalidUser"` // 非法用户信息
 }
 
-func (v *VIVO) SendMessage(m *MessageBody, pushId []string) (*Response, error) {
+func (v *VIVO) SendMessage(m *Message, pushId []string) (*Response, error) {
 	response := &Response{}
 	header := make(map[string]string)
 	header["authToken"] = v.AuthToken
 	var body []byte
 	if len(pushId) == 1 {
-		message := v.initMessageSingle(m, pushId[0])
-		forms := message.Fields.(string)
+		forms := v.initMessageSingle(m, pushId[0])
 		var err error
 		body, err = postReqJson(VIVOProductUrl+VIVOSingleSend, forms, header)
 		if err != nil {

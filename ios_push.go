@@ -36,7 +36,7 @@ type Alert struct {
 	Body  string `json:"body"`
 }
 
-func (i *IOS) initMessage(m *MessageBody) *Message {
+func (i *IOS) initMessage(m *Message) string {
 	fields := IOSFields{
 		Aps: Aps{
 			Alert: Alert{
@@ -47,9 +47,7 @@ func (i *IOS) initMessage(m *MessageBody) *Message {
 		},
 	}
 	fieldsStr, _ := json.Marshal(fields)
-	return &Message{
-		Fields: string(fieldsStr),
-	}
+	return string(fieldsStr)
 }
 
 const (
@@ -80,10 +78,9 @@ type ErrResult struct {
 	Reason string `json:"reason"`
 }
 
-func (i *IOS) SendMessage(m *MessageBody, token []string) (*Response, error) {
+func (i *IOS) SendMessage(m *Message, token []string) (*Response, error) {
 	response := &Response{}
-	message := i.initMessage(m)
-	fields := message.Fields.(string)
+	forms := i.initMessage(m)
 	header := make(map[string]string)
 	header["apns-topic"] = i.BundleId
 	header["Authorization"] = fmt.Sprintf("bearer %s", i.Bearer)
@@ -91,7 +88,7 @@ func (i *IOS) SendMessage(m *MessageBody, token []string) (*Response, error) {
 
 	for _, v := range token {
 		requestUrl := IOSProductionHost + IOSMessageURL + v
-		body, err := postReqJson(requestUrl, fields, header)
+		body, err := postReqJson(requestUrl, forms, header)
 		if err != nil {
 			response.Code = HTTPERROR
 			return response, err

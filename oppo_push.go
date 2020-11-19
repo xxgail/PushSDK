@@ -38,7 +38,7 @@ type OPPONotification struct {
 	ActionParameters    string `json:"action_parameters"`     // 传递给网页或应用的参数 json 格式
 }
 
-func (o *OPPO) initMessage(m *MessageBody, registrationIds []string) *Message {
+func (o *OPPO) initMessage(m *Message, registrationIds []string) map[string]string {
 	var messages []MessageFields
 	for _, v := range registrationIds {
 		message := MessageFields{
@@ -61,9 +61,7 @@ func (o *OPPO) initMessage(m *MessageBody, registrationIds []string) *Message {
 	fields := map[string]string{
 		"messages": string(messagesStr),
 	}
-	return &Message{
-		Fields: fields,
-	}
+	return fields
 }
 
 const (
@@ -94,14 +92,13 @@ type Data struct {
 	ErrorMessage   string `json:"errorMessage"`
 }
 
-func (o *OPPO) SendMessage(m *MessageBody, pushIds []string) (*Response, error) {
+func (o *OPPO) SendMessage(m *Message, pushIds []string) (*Response, error) {
 	response := &Response{}
-	message := o.initMessage(m, pushIds)
-	fields := message.Fields.(map[string]string)
+	forms := o.initMessage(m, pushIds)
 	requestUrl := OPPOProductionHost + OPPOMessageURL
 	header := make(map[string]string)
 	header["auth_token"], _ = o.getAuthTokenOPPO()
-	body, err := postReqUrlencoded(requestUrl, fields, header)
+	body, err := postReqUrlencoded(requestUrl, forms, header)
 	if err != nil {
 		response.Code = HTTPERROR
 		return response, err

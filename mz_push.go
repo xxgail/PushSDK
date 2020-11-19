@@ -66,7 +66,7 @@ type PushTimeInfo struct {
 //	Sound   int `json:"sound"`
 //}
 
-func (mz *MZ) initMessage(m *MessageBody) *Message {
+func (mz *MZ) initMessage(m *Message) map[string]string {
 	var messageJson MessageJson
 	messageJson = MessageJson{
 		NoticeBarInfo: NoticeBarInfo{
@@ -94,9 +94,7 @@ func (mz *MZ) initMessage(m *MessageBody) *Message {
 	fields = map[string]string{
 		"messageJson": string(messageJsonStr),
 	}
-	return &Message{
-		Fields: fields,
-	}
+	return fields
 }
 
 const (
@@ -114,16 +112,15 @@ type MZResult struct {
 	MsgId    string `json:"msgId"`
 }
 
-func (mz *MZ) SendMessage(m *MessageBody, pushIds []string) (*Response, error) {
+func (mz *MZ) SendMessage(m *Message, pushIds []string) (*Response, error) {
 	response := &Response{}
-	message := mz.initMessage(m)
-	fields := message.Fields.(map[string]string)
-	fields["appId"] = mz.AppId
-	fields["pushIds"] = strings.Join(pushIds, ",")
-	fields["sign"] = mz.generateSign(fields)
+	forms := mz.initMessage(m)
+	forms["appId"] = mz.AppId
+	forms["pushIds"] = strings.Join(pushIds, ",")
+	forms["sign"] = mz.generateSign(forms)
 	requestUrl := MZProductionHost + MZMessageURL
 	header := make(map[string]string)
-	body, err := postReqUrlencoded(requestUrl, fields, header)
+	body, err := postReqUrlencoded(requestUrl, forms, header)
 	if err != nil {
 		response.Code = HTTPERROR
 		return response, err

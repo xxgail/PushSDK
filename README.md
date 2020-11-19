@@ -5,7 +5,9 @@ Go-PushSDK
 ▶ 待完善
 
 🍬 Add the library to your $GOPATH/src
+
 `go get github.com/xxgail/PushSDK`
+
 
 - [builder.go](https://github.com/xxgail/PushSDK/blob/master/builder.go) 构建消息体
 - [common.go](https://github.com/xxgail/PushSDK/blob/master/common.go) 包内的公共方法
@@ -21,7 +23,7 @@ package main
 
 import (
     "fmt"
-	"github.com/xxgail/PushSDK"
+    "github.com/xxgail/PushSDK"
 )
 
 func main() {
@@ -40,6 +42,7 @@ func main() {
 ```
 # channel-param
 | **channel** | **plat** |
+| --- | --- |
 | ios | {"key_id":"xxx","team_id":"xxx","bundle_id":"xxx","auth_token_path":"xxx.p8"} |
 | mi | {"app_secret":"xxx","restricted_package_name":"xxx"} |
 | hw | {"app_id":"xxx","client_secret":"xxx"} |
